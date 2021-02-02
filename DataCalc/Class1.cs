@@ -9,25 +9,41 @@ namespace DataCalc
          /// <summary>
         /// Структура сохраняет в себе широту и долготу точки трассы
         /// </summary>
-        public struct GeographicCoordinate
+        public struct GeographCoord
         {
+            /// <summary>
+            /// Широта (градусы)
+            /// </summary>
             public double Fi;
+            /// <summary>
+            /// Долгота (градусы)
+            /// </summary>
             public double Lambda;
         }
+         
+         /// <summary>
+         /// Геоцентрические координаты
+         /// </summary>
+         public struct GeocentrCoord
+         {
+             public double X { get; set; }
+             public double Y { get; set; }
+             public double Z { get; set; }
+         }
         
         /// <summary>
         /// Входные параметры для функции Trassal
         /// </summary>
-        public struct TrassalInputParameters
+        public struct TrassalInParam
         {
             /// <summary>
             /// Широта и долгота начальной точки трассы (градусы)
             /// </summary>
-            public GeographicCoordinate StartGeographicCoordinate { get; set; }
+            public GeographCoord StartGeographCoord { get; set; }
             /// <summary>
             /// Широта и долгота конечно точки трассы (градусы)
             /// </summary>
-            public GeographicCoordinate EndGeographicCoordinate { get; set; }
+            public GeographCoord EndGeographCoord { get; set; }
             /// <summary>
             /// Высота полета (метры)
             /// </summary>
@@ -42,26 +58,16 @@ namespace DataCalc
             public double t { get; set; }
 
         }
-        
-        /// <summary>
-        /// Геоцентрические координаты
-        /// </summary>
-        public struct GeocentricCoordinate
-        {
-            public double X { get; set; }
-            public double Y { get; set; }
-            public double Z { get; set; }
-        }
-        
+
         /// <summary>
         /// Выходные параметры для функции Trassal
         /// </summary>
-        public struct TrassalOutputParameters
+        public struct TrassalOutParam
         {
             /// <summary>
             /// Широта и долгота нахождения ЛА в момент t;
             /// </summary>
-            public GeographicCoordinate CurrentGeographicCoordinate { get; set; }
+            public GeographCoord CurrentGeographCoord { get; set; }
             /// <summary>
             /// Истинный курсовой угол ЛА в момент t;
             /// </summary>
@@ -69,21 +75,61 @@ namespace DataCalc
             /// <summary>
             /// Координаты точки нахождения ЛА в момент t в геоцентрической системе.
             /// </summary>
-            public GeocentricCoordinate p { get; set; }
+            public GeocentrCoord p { get; set; }
             /// <summary>
             /// Координаты единичного вектора, направленного вдоль строительной оси ЛА,
             /// в момент t в геоцентрической системе.
             /// </summary>
-            public GeocentricCoordinate v { get; set; }
+            public GeocentrCoord v { get; set; }
         }
 
         #endregion
 
-        public TrassalOutputParameters Trassal(TrassalInputParameters param)
+        #region Константы
+
+        /// <summary>
+        /// Радиус земли
+        /// </summary>
+        const double R = 6371;
+
+        #endregion
+        
+        public TrassalOutParam Trassal(TrassalInParam param)
         {
+            // Перевод координат начальной и конечной точек трассы в геоцентрическую систему.
+            GeocentrCoord r1 = ToGeocetnricCoord(param.StartGeographCoord, param.h);
+            GeocentrCoord r2 = ToGeocetnricCoord(param.EndGeographCoord, param.h);
+            
+            
             
 
-            return new TrassalOutputParameters();
+            return new TrassalOutParam();
         }
-    }
+
+        #region Приватные функции
+
+        /// <summary>
+        /// Перевод точек трассы в геоцентрическую систему
+        /// </summary>
+        /// <param name="coord">Географические координты точки</param>
+        /// <param name="h">Высота полета</param>
+        /// <returns>Возвращает координаты точки в геоцентрической системе</returns>
+        private static GeocentrCoord ToGeocetnricCoord(GeographCoord coord, double h) =>
+            new GeocentrCoord()
+            {
+                X = Math.Cos(ToDegrees(coord.Fi)) * Math.Cos(ToDegrees(coord.Lambda)) * (R + h),
+                Y = Math.Cos(ToDegrees(coord.Fi)) * Math.Sin(ToDegrees(coord.Lambda)) * (R + h),
+                Z = Math.Sin(ToDegrees(coord.Fi)) * (R + h)
+            };
+
+        /// <summary>
+        /// Переводит градусы в радианы
+        /// </summary>
+        /// <param name="radian">Градусы</param>
+        /// <returns>Радианы</returns>
+        private static double ToDegrees(double radian) =>
+            (radian * Math.PI) / 180;
+
+        #endregion
+        }
 }

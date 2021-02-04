@@ -29,7 +29,37 @@ namespace DataCalc
              public double X { get; set; }
              public double Y { get; set; }
              public double Z { get; set; }
+
              
+             /// <summary>
+             /// Перегрузка оператора для сложения двух трехмерных векоров
+             /// </summary>
+             /// <param name="op1">Первый вектор</param>
+             /// <param name="op2">Второй вектор</param>
+             /// <returns>Новый вектор являющийся суммой двух других</returns>
+             public static GeocentrCoord operator +(GeocentrCoord op1, GeocentrCoord op2)
+                 =>
+                     new GeocentrCoord()
+                     {
+                         X = op1.X + op2.X,
+                         Y = op1.Y + op2.Y,
+                         Z = op1.Z + op2.Z,
+                     };
+             
+             /// <summary>
+             /// Перегрузка оператора для вычитания двух трехмерных векоров
+             /// </summary>
+             /// <param name="op1">Первый вектор</param>
+             /// <param name="op2">Второй вектор</param>
+             /// <returns>Новый вектор являющийся разностью двух других</returns>
+             public static GeocentrCoord operator -(GeocentrCoord op1, GeocentrCoord op2)
+                 =>
+                     new GeocentrCoord()
+                     {
+                         X = op1.X - op2.X,
+                         Y = op1.Y - op2.Y,
+                         Z = op1.Z - op2.Z,
+                     };
 
              /// <summary>
              /// Перегрузка оператора умножение вектора на число
@@ -121,17 +151,41 @@ namespace DataCalc
         
         public TrassalOutParam Trassal(TrassalInParam param)
         {
-            // Перевод координат начальной и конечной точек трассы в геоцентрическую систему.
             var e1 = ToGeocetnricCoord(param.StartGeographCoord);
             var e2 = ToGeocetnricCoord(param.EndGeographCoord);
+            // Перевод координат начальной и конечной точек трассы в геоцентрическую систему.
             var r1 = e1 * (R + param.h);
             var r2 = e2 * (R + param.h);
             
             // Угловая величина дуги большого круга, соединяющей начальную и конечную точки трассы.
-            var delta = ToDegrees(Math.Acos(e1 * e2));
+            var delta = TD(Math.Acos(e1 * e2));
             
-            //Угловая величина дуги большого круга, пройденной за время t.
-            var alpha = ((param.V * param.t) / R + param.h) * (180 / Math.PI);
+            // Угловая величина дуги большого круга, пройденной за время t.
+            var alpha = ((param.V * param.t) / (R + param.h)) * (180 / Math.PI);
+
+            #region Используется для расчетов в следующих строках для расчета векторов.
+            Func<GeocentrCoord, GeocentrCoord> npr = obj => obj * (Math.Sin(delta - alpha) / Math.Sin(alpha)) + 
+                                                            obj * (Math.Sin(alpha) / Math.Sin(delta));
+            #endregion
+            
+            // Вектор координат ЛА в момент t.
+            var p = npr(r1) + npr(r2);
+            
+            // Нормированный вектор
+            var e = npr(e1) + npr(e2);
+            
+            // Географические координаты ЛА в момент t.
+            var f = Math.Asin(e.Z);
+            var lambda = TD(Math.Acos(e.X / TD(Math.Cos(f))));
+            f = TD(f);
+            if (e.Y < 0) lambda *= -1;
+            else if (e.Y == 0) lambda *= 0;
+            
+            //Вектор скорости ЛА в момент t
+            var p_speed = 
+                (r2 * (TD(Math.Cos(TR(alpha))) / TD(Math.Sin(TR(delta))))
+                 - r1 * (Math.Cos(TR(delta - alpha)) / Math.Sin(TR(delta)))) 
+                * (param.V / (R + param.h));
 
             return new TrassalOutParam();
         }
@@ -142,14 +196,13 @@ namespace DataCalc
         /// Создание трехмерного вектора
         /// </summary>
         /// <param name="coord">Географические координты точки</param>
-        /// <param name="h">Высота полета</param>
         /// <returns>Возвращает трехмерный вектор</returns>
         private static GeocentrCoord ToGeocetnricCoord(GeographCoord coord) =>
             new GeocentrCoord()
             {
-                X = Math.Cos(ToRad(coord.Fi)) * Math.Cos(ToRad(coord.Lambda)),
-                Y = Math.Cos(ToRad(coord.Fi)) * Math.Sin(ToRad(coord.Lambda)),
-                Z = Math.Sin(ToRad(coord.Fi))
+                X = Math.Cos(TR(coord.Fi)) * Math.Cos(TR(coord.Lambda)),
+                Y = Math.Cos(TR(coord.Fi)) * Math.Sin(TR(coord.Lambda)),
+                Z = Math.Sin(TR(coord.Fi))
             };
 
         /// <summary>
@@ -157,7 +210,7 @@ namespace DataCalc
         /// </summary>
         /// <param name="degrees">Градусы</param>
         /// <returns>Радианы</returns>
-        private static double ToRad(double degrees) =>
+        private static double TR(double degrees) =>
             (degrees * Math.PI) / 180;
 
         
@@ -166,7 +219,7 @@ namespace DataCalc
         /// </summary>
         /// <param name="rad">Радианы</param>
         /// <returns>Градусы</returns>
-        private static double ToDegrees(double rad) =>
+        private static double TD(double rad) =>
             (rad * 180) / Math.PI;
 
         #endregion

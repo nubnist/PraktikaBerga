@@ -29,6 +29,31 @@ namespace DataCalc
              public double X { get; set; }
              public double Y { get; set; }
              public double Z { get; set; }
+             
+
+             /// <summary>
+             /// Перегрузка оператора умножение вектора на число
+             /// </summary>
+             /// <param name="op1">Вектор</param>
+             /// <param name="op2">Число</param>
+             /// <returns>Вектор умноженный начисло</returns>
+             public static GeocentrCoord operator *(GeocentrCoord op1, double op2)
+                 => new GeocentrCoord()
+                 {
+                     X = op1.X * op2,
+                     Y = op1.Y * op2,
+                     Z = op1.Z * op2,
+                 };
+
+             /// <summary>
+             /// Перегрузка оператора умножения для двух векторов - возвращает скалярное произведение векторов в пространстве.
+             /// </summary>
+             /// <param name="op1">Первый вектор</param>
+             /// <param name="op2">Второй вектор</param>
+             /// <returns></returns>
+             public static double operator *(GeocentrCoord op1, GeocentrCoord op2)
+                 => op1.X * op2.X + op1.Y * op2.Y + op1.Z * op2.Z;
+
          }
         
         /// <summary>
@@ -97,11 +122,16 @@ namespace DataCalc
         public TrassalOutParam Trassal(TrassalInParam param)
         {
             // Перевод координат начальной и конечной точек трассы в геоцентрическую систему.
-            GeocentrCoord r1 = ToGeocetnricCoord(param.StartGeographCoord, param.h);
-            GeocentrCoord r2 = ToGeocetnricCoord(param.EndGeographCoord, param.h);
+            var e1 = ToGeocetnricCoord(param.StartGeographCoord);
+            var e2 = ToGeocetnricCoord(param.EndGeographCoord);
+            var r1 = e1 * (R + param.h);
+            var r2 = e2 * (R + param.h);
             
+            // Угловая величина дуги большого круга, соединяющей начальную и конечную точки трассы.
+            var delta = ToDegrees(Math.Acos(e1 * e2));
             
-            
+            //Угловая величина дуги большого круга, пройденной за время t.
+            var alpha = ((param.V * param.t) / R + param.h) * (180 / Math.PI);
 
             return new TrassalOutParam();
         }
@@ -109,27 +139,36 @@ namespace DataCalc
         #region Приватные функции
 
         /// <summary>
-        /// Перевод точек трассы в геоцентрическую систему
+        /// Создание трехмерного вектора
         /// </summary>
         /// <param name="coord">Географические координты точки</param>
         /// <param name="h">Высота полета</param>
-        /// <returns>Возвращает координаты точки в геоцентрической системе</returns>
-        private static GeocentrCoord ToGeocetnricCoord(GeographCoord coord, double h) =>
+        /// <returns>Возвращает трехмерный вектор</returns>
+        private static GeocentrCoord ToGeocetnricCoord(GeographCoord coord) =>
             new GeocentrCoord()
             {
-                X = Math.Cos(ToDegrees(coord.Fi)) * Math.Cos(ToDegrees(coord.Lambda)) * (R + h),
-                Y = Math.Cos(ToDegrees(coord.Fi)) * Math.Sin(ToDegrees(coord.Lambda)) * (R + h),
-                Z = Math.Sin(ToDegrees(coord.Fi)) * (R + h)
+                X = Math.Cos(ToRad(coord.Fi)) * Math.Cos(ToRad(coord.Lambda)),
+                Y = Math.Cos(ToRad(coord.Fi)) * Math.Sin(ToRad(coord.Lambda)),
+                Z = Math.Sin(ToRad(coord.Fi))
             };
 
         /// <summary>
         /// Переводит градусы в радианы
         /// </summary>
-        /// <param name="radian">Градусы</param>
+        /// <param name="degrees">Градусы</param>
         /// <returns>Радианы</returns>
-        private static double ToDegrees(double radian) =>
-            (radian * Math.PI) / 180;
+        private static double ToRad(double degrees) =>
+            (degrees * Math.PI) / 180;
+
+        
+        /// <summary>
+        /// Переводит радианы в градусы
+        /// </summary>
+        /// <param name="rad">Радианы</param>
+        /// <returns>Градусы</returns>
+        private static double ToDegrees(double rad) =>
+            (rad * 180) / Math.PI;
 
         #endregion
-        }
+    }
 }

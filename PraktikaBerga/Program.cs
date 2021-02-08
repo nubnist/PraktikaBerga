@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Channels;
 using DataCalc;
 
 namespace PraktikaBerga
@@ -9,21 +10,27 @@ namespace PraktikaBerga
         {
             var coord_beg = new GeographCoord() {Fi = 30, Lambda = 40};
             var coord_end = new GeographCoord() {Fi = 31, Lambda = 39};
+            var h = 10000;
+            var V = 200;
 
-            var param = new TrassalInParam()
+            Console.WriteLine("t\tШирота\t Долгота\t\tКурс\t\t\tВектор Po\t\t\tВектор v");
+            for (var i = 0; i <= 60; i+=10)
             {
-                h = 10000,
-                t = 0,
-                V = 200,
-                StartGeographCoord = coord_beg,
-                EndGeographCoord = coord_end
-            };
-
-            var res = Calc.Trassal(param);
-
-            Console.WriteLine($"Широта: {res.CurrentGeographCoord.Fi}, Долгота {res.CurrentGeographCoord.Lambda}"
-                              + $", курс {res.Psi}");
-
+                var param = new TrassalInParam()
+                {
+                    h = h,
+                    t = i,
+                    V = V,
+                    StartGeographCoord = coord_beg,
+                    EndGeographCoord = coord_end
+                };
+                var res = Calc.Trassal(param);
+                Console.WriteLine($"{i}\t"
+                                  + $"{res.CurrentGeographCoord.Fi:0.00000} {res.CurrentGeographCoord.Lambda:0.00000}\t\t"
+                                  + $"{res.Psi:0.00000}\t\t"
+                                  + $"{res.p.X:0.00} {res.p.Y:0.00} {res.p.Z:0.00}\t\t"
+                                  + $"{res.v.X:0.00000} {res.v.Y:0.00000} {res.v.Z:0.00000}");
+            }
         }
     }
 }

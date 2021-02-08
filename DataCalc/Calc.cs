@@ -68,7 +68,7 @@ namespace DataCalc
             {
                 CurrentGeographCoord = new GeographCoord(){Fi = f, Lambda = lambda},
                 Psi = psi,
-                p = p,
+                p = new GeocentrCoord(){X = p.X / 1000, Y = p.Y / 1000, Z = p.Z / 1000},
                 v = v
             };
         }

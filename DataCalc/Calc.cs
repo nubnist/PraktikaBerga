@@ -2,18 +2,18 @@
 
 namespace DataCalc
 {
-    public class Calc
+    public static class Calc
     {
         #region Константы
 
         /// <summary>
         /// Радиус земли
         /// </summary>
-        const double R = 6371;
+        const double R = 6371000;
 
         #endregion
         
-        public TrassalOutParam Trassal(TrassalInParam param)
+        public static TrassalOutParam Trassal(TrassalInParam param)
         {
             var e1 = ToGeocetnricCoord(param.StartGeographCoord);
             var e2 = ToGeocetnricCoord(param.EndGeographCoord);
@@ -27,21 +27,15 @@ namespace DataCalc
             // Угловая величина дуги большого круга, пройденной за время t.
             var alpha = ((param.V * param.t) / (R + param.h)) * (180 / Math.PI);
 
-            #region Используется в следующих строках для расчета векторов.
-            Func<GeocentrCoord, GeocentrCoord> npr = obj => obj * (Sin(delta - alpha) / Sin(alpha)) + 
-                                                            obj * (Sin(alpha) / Sin(delta));
-            #endregion
-            
             // Вектор координат ЛА в момент t.
-            var p = npr(r1) + npr(r2);
+            var p = r1 * (Sin(delta - alpha) / Sin(delta)) + r2 * (Sin(alpha) / Sin(delta));
             
             // Нормированный вектор
-            var e = npr(e1) + npr(e2);
+            var e = e1 * (Sin(delta - alpha) / Sin(delta)) + e2 * (Sin(alpha) / Sin(delta));
             
             // Географические координаты ЛА в момент t.
-            var f = Math.Asin(e.Z);
+            var f = Arcsin(e.Z);
             var lambda = Arccos(e.X / Cos(f));
-            f = ToDegrees(f);
             if (e.Y < 0) lambda *= -1;
             else if (e.Y == 0) lambda *= 0;
             
@@ -64,8 +58,11 @@ namespace DataCalc
             
             // Курсовой угол:
             var psi = Arccos(v * m);
-            
-            
+            var check = param.EndGeographCoord.Lambda - param.StartGeographCoord.Lambda;
+            if (0 < check && check < 180 || check < -180)
+                psi = Math.Abs(psi);
+            else
+                psi *= psi > 0 ? -1 : 1;
 
             return new TrassalOutParam()
             {
@@ -86,9 +83,9 @@ namespace DataCalc
         private static GeocentrCoord ToGeocetnricCoord(GeographCoord coord) =>
             new GeocentrCoord()
             {
-                X = Math.Cos(ToRadian(coord.Fi)) * Math.Cos(ToRadian(coord.Lambda)),
-                Y = Math.Cos(ToRadian(coord.Fi)) * Math.Sin(ToRadian(coord.Lambda)),
-                Z = Math.Sin(ToRadian(coord.Fi))
+                X = Cos(coord.Fi) * Cos(coord.Lambda),
+                Y = Cos(coord.Fi) * Sin(coord.Lambda),
+                Z = Sin(coord.Fi)
             };
 
         /// <summary>
@@ -112,7 +109,7 @@ namespace DataCalc
         /// </summary>
         /// <param name="nm">Число</param>
         /// <returns>Arcsin</returns>
-        private double Arcsin(double nm) =>
+        private static double Arcsin(double nm) =>
             ToDegrees(Math.Asin(nm));
         
         /// <summary>

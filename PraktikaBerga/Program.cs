@@ -14,15 +14,15 @@ namespace PraktikaBerga
             var V = 200;
 
             Console.WriteLine("t\tШирота\t Долгота\t\tКурс\t\t\tВектор Po\t\t\tВектор v");
-            for (var i = 0; i <= 60; i+=10)
+            for (var i = 0; i <= 2000; i+=1)
             {
                 var param = new TrassalInParam()
                 {
                     h = h,
                     t = i,
                     V = V,
-                    StartGeographCoord = coord_beg,
-                    EndGeographCoord = coord_end
+                    Start = coord_beg,
+                    End = coord_end
                 };
                 var res = Calc.Trassal(param);
                 Console.WriteLine($"{i}\t"

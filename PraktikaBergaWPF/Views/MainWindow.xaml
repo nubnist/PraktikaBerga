@@ -107,6 +107,7 @@
                         Text="Данные измерений"
                         Margin="0 0 0 10" HorizontalAlignment="Center" DockPanel.Dock="Top"/>
                     <TextBox
+                        Text="{Binding TimeAll, StringFormat='0.000000000'}"
                         DockPanel.Dock="Bottom"
                         Style="{StaticResource MaterialDesignFilledTextBox}"
                         VerticalAlignment="Top"
@@ -117,15 +118,15 @@
                         materialDesign:HintAssist.Hint="Измеренное время (Tполн)"
                         IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextFieldTextBoxEnabledComboBox}"/>
                     
-                    <DataGrid ItemsSource="{Binding Datas}" AutoGenerateColumns="False" HorizontalAlignment="Center" Margin="0 0 0 15">
+                    <DataGrid ItemsSource="{Binding Params}" AutoGenerateColumns="False" Margin="0 0 0 15">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Время" Binding="{Binding Time}" Width="80"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Широта" Binding="{Binding Fi}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Долгота" Binding="{Binding Lambda}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Высота" Binding="{Binding Height}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Курсовой угол" Binding="{Binding Psi}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Угол тангажа" Binding="{Binding Tangaz}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Угол крена" Binding="{Binding Kren}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Время" Binding="{Binding Time, StringFormat='0.000000000'}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Широта" Binding="{Binding Fi, StringFormat='0.000000'}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Долгота" Binding="{Binding Lambda, StringFormat='0.000000'}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Высота" Binding="{Binding Height, StringFormat='0.000'}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Курсовой угол" Binding="{Binding Psi , StringFormat='0.000000'}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Угол тангажа" Binding="{Binding Tangaz, StringFormat='0.000000'}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Угол крена" Binding="{Binding Kren, StringFormat='0.000000'}"></DataGridTextColumn>
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
@@ -134,10 +135,11 @@
         
         <!--Сохранение в файл-->
         <Button Grid.Row="2" Margin="10 10 10 0"
-            Style="{StaticResource MaterialDesignRaisedAccentButton}"
-            Height="50"
-            materialDesign:ButtonAssist.CornerRadius="25 25 0 0"
-            ToolTip="MaterialDesignRaisedAccentButton with Round Top Corners">
+                Command="{Binding SaveCommand}"
+                Style="{StaticResource MaterialDesignRaisedAccentButton}"
+                Height="50"
+                materialDesign:ButtonAssist.CornerRadius="25 25 0 0"
+                ToolTip="MaterialDesignRaisedAccentButton with Round Top Corners">
             <TextBlock
                 Text="Сохранить в файл" />
         </Button>

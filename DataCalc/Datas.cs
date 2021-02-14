@@ -8,7 +8,7 @@ namespace DataCalc
         /// <summary>
         /// Содержит данные точки трассы
         /// </summary>
-        public class Params
+        public class Param
         {
             public double Time { get; set; }
             public double Fi { get; set; }
@@ -17,6 +17,11 @@ namespace DataCalc
             public double Psi { get; set; }
             public double Tangaz { get; set; }
             public double Kren { get; set; }
+
+            public override string ToString()
+            {
+                return $"{Time:0.000000000}\t{Fi:0.000000}\t{Lambda:0.000000}\t{Height:0.000}\t{Psi:0.000000}\t{Tangaz}\t{Kren}";
+            }
         }
 
         /// <summary>
@@ -129,11 +134,11 @@ namespace DataCalc
             /// <summary>
             /// Широта и долгота начальной точки трассы (градусы)
             /// </summary>
-            public GeographCoord StartGeographCoord { get; set; }
+            public GeographCoord Start { get; set; }
             /// <summary>
             /// Широта и долгота конечно точки трассы (градусы)
             /// </summary>
-            public GeographCoord EndGeographCoord { get; set; }
+            public GeographCoord End { get; set; }
             /// <summary>
             /// Высота полета (метры)
             /// </summary>
@@ -171,17 +176,6 @@ namespace DataCalc
             /// в момент t в геоцентрической системе.
             /// </summary>
             public GeocentrCoord v { get; set; }
-        }
-
-        public class Data
-        {
-            public double Time { get; set; }
-            public double Fi { get; set; }
-            public double Lambda { get; set; }
-            public double Height { get; set; }
-            public double Psi { get; set; }
-            public double Tangaz { get; set; }
-            public double Kren { get; set; }
         }
         
         #endregion

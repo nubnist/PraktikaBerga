@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DataCalc
 {
@@ -72,7 +75,31 @@ namespace DataCalc
                 v = v
             };
         }
-
+        
+        /// <summary>
+        /// Формирование данных о пролете ЛА по ломанной
+        /// </summary>
+        /// <param name="height">Высота полета</param>
+        /// <param name="speed">Скорость полета</param>
+        /// <param name="time">Шаг времени</param>
+        /// <param name="coords">Координаты ломанной</param>
+        /// <returns>Данные о пролете по ломанной</returns>
+        public static Params MakeTrassa(double height, double speed, double time, List<GeographCoord> coords)
+        {
+            for (var i = 1; i < coords.Count; i++)
+            {
+                var param = new TrassalInParam() {
+                    h = height, t = time, V = speed,
+                    StartGeographCoord = new() {Fi = coords[i-1].Fi, Lambda = coords[i-1].Lambda},
+                    EndGeographCoord = new() {Fi = coords[i].Fi, Lambda = coords[i].Lambda}
+                };
+                
+                
+            }
+            
+            return new Params();
+        }
+        
         #region Приватные функции
 
         /// <summary>

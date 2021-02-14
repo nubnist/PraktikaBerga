@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net5.0-windows</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <RootNamespace>WpfApp1</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MaterialDesignThemes" Version="4.0.0-ci2405" />
+      <PackageReference Include="PropertyChanged.Fody" Version="3.3.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DataCalc\DataCalc.csproj" />
+    </ItemGroup>
+
+</Project>

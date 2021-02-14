@@ -4,26 +4,40 @@ namespace DataCalc
 {
     
         #region Структуры данных для измерений
+        
+        /// <summary>
+        /// Содержит данные точки трассы
+        /// </summary>
+        public class Params
+        {
+            public double Time { get; set; }
+            public double Fi { get; set; }
+            public double Lambda { get; set; }
+            public double Height { get; set; }
+            public double Psi { get; set; }
+            public double Tangaz { get; set; }
+            public double Kren { get; set; }
+        }
 
         /// <summary>
         /// Структура сохраняет в себе широту и долготу точки трассы
         /// </summary>
-        public struct GeographCoord
+        public class GeographCoord
         {
             /// <summary>
             /// Широта (градусы)
             /// </summary>
-            public double Fi;
+            public double Fi { get; set; }
             /// <summary>
             /// Долгота (градусы)
             /// </summary>
-            public double Lambda;
+            public double Lambda{ get; set; }
         }
          
          /// <summary>
          /// Геоцентрические координаты
          /// </summary>
-         public struct GeocentrCoord
+         public class GeocentrCoord
          {
              public double X { get; set; }
              public double Y { get; set; }
@@ -110,7 +124,7 @@ namespace DataCalc
         /// <summary>
         /// Входные параметры для функции Trassal
         /// </summary>
-        public struct TrassalInParam
+        public class TrassalInParam
         {
             /// <summary>
             /// Широта и долгота начальной точки трассы (градусы)
@@ -138,7 +152,7 @@ namespace DataCalc
         /// <summary>
         /// Выходные параметры для функции Trassal
         /// </summary>
-        public struct TrassalOutParam
+        public class TrassalOutParam
         {
             /// <summary>
             /// Широта и долгота нахождения ЛА в момент t;
@@ -159,6 +173,17 @@ namespace DataCalc
             public GeocentrCoord v { get; set; }
         }
 
+        public class Data
+        {
+            public double Time { get; set; }
+            public double Fi { get; set; }
+            public double Lambda { get; set; }
+            public double Height { get; set; }
+            public double Psi { get; set; }
+            public double Tangaz { get; set; }
+            public double Kren { get; set; }
+        }
+        
         #endregion
 
 }

@@ -1,0 +1,145 @@
+﻿<Window x:Class="WpfApp1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        xmlns:local="clr-namespace:WpfApp1"
+        xmlns:viewModels="clr-namespace:WpfApp1.ViewModels"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="700" Width="1200">
+    <Window.DataContext>
+        <viewModels:MainViewModel />
+    </Window.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <!--Параметры трассы-->
+        <materialDesign:Card Padding="32" Margin="16" HorizontalAlignment="Center">
+            <StackPanel Orientation="Vertical">
+                <TextBlock
+                    Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                    Text="Параметры трассы"
+                    Margin="0 0 0 10" HorizontalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBox
+                        Text="{Binding Height}"
+                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                        VerticalAlignment="Top"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        MaxWidth="400"
+                        Margin="15"
+                        materialDesign:HintAssist.Hint="Высота (км)"
+                    />
+                    <TextBox
+                        Text="{Binding Speed}"
+                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                        VerticalAlignment="Top"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        MaxWidth="400"
+                        Margin="15"
+                        materialDesign:HintAssist.Hint="Скорость (м/сек)" />
+                    <TextBox
+                        Text="{Binding Time}"
+                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                        VerticalAlignment="Top"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        MaxWidth="400"
+                        Margin="15"
+                        materialDesign:HintAssist.Hint="Шаг по времени" />
+                </StackPanel>
+                <Button
+                    Command="{Binding BuildModelCommand}"
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    Height="40"
+                    materialDesign:ButtonAssist.CornerRadius="5"
+                    ToolTip="Начать построение модели">
+                    <TextBlock
+                        Text="Построение модели" />
+                </Button>
+            </StackPanel>
+        </materialDesign:Card>
+        
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            
+            <!--Узловые точки-->
+            <materialDesign:Card Grid.Column="0" Padding="32" Margin="16" >
+                <DockPanel>
+                    <TextBlock
+                        Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                        Text="Узловые точки"
+                        Margin="0 0 0 10"
+                        HorizontalAlignment="Center" DockPanel.Dock="Top"/>
+                    
+                    <DataGrid ItemsSource="{Binding Coords}" HorizontalAlignment="Center" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Широта" Binding="{Binding Fi}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Долгота" Binding="{Binding Lambda}"></DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    
+                </DockPanel>
+            </materialDesign:Card>
+            
+            <!--Данные измерений-->
+            <materialDesign:Card Grid.Column="1" Padding="32" Margin="16" >
+                <DockPanel>
+                    <TextBlock
+                        Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                        Text="Данные измерений"
+                        Margin="0 0 0 10" HorizontalAlignment="Center" DockPanel.Dock="Top"/>
+                    <TextBox
+                        DockPanel.Dock="Bottom"
+                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                        VerticalAlignment="Top"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        Width="200"
+                        MaxWidth="400"
+                        materialDesign:HintAssist.Hint="Измеренное время (Tполн)"
+                        IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextFieldTextBoxEnabledComboBox}"/>
+                    
+                    <DataGrid ItemsSource="{Binding Datas}" AutoGenerateColumns="False" HorizontalAlignment="Center" Margin="0 0 0 15">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Время" Binding="{Binding Time}" Width="80"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Широта" Binding="{Binding Fi}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Долгота" Binding="{Binding Lambda}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Высота" Binding="{Binding Height}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Курсовой угол" Binding="{Binding Psi}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Угол тангажа" Binding="{Binding Tangaz}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Угол крена" Binding="{Binding Kren}"></DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </materialDesign:Card>
+        </Grid>
+        
+        <!--Сохранение в файл-->
+        <Button Grid.Row="2" Margin="10 10 10 0"
+            Style="{StaticResource MaterialDesignRaisedAccentButton}"
+            Height="50"
+            materialDesign:ButtonAssist.CornerRadius="25 25 0 0"
+            ToolTip="MaterialDesignRaisedAccentButton with Round Top Corners">
+            <TextBlock
+                Text="Сохранить в файл" />
+        </Button>
+    </Grid>
+</Window>

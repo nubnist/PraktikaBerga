@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PraktikaBerga", "PraktikaBe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataCalc", "DataCalc\DataCalc.csproj", "{8BE7F882-7F89-4ED7-B0D2-DB1A4F8DA3E1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PraktikaBergaWPF", "PraktikaBergaWPF\PraktikaBergaWPF.csproj", "{5B82247A-296B-4FA0-9A41-4DE984DC1C17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{8BE7F882-7F89-4ED7-B0D2-DB1A4F8DA3E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BE7F882-7F89-4ED7-B0D2-DB1A4F8DA3E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BE7F882-7F89-4ED7-B0D2-DB1A4F8DA3E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B82247A-296B-4FA0-9A41-4DE984DC1C17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B82247A-296B-4FA0-9A41-4DE984DC1C17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B82247A-296B-4FA0-9A41-4DE984DC1C17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B82247A-296B-4FA0-9A41-4DE984DC1C17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

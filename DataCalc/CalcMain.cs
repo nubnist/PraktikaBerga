@@ -11,17 +11,8 @@ using Microsoft.Scripting.Hosting;
 
 namespace DataCalc
 {
-    public static class Calc
+    public static partial class Calc
     {
-        #region Константы
-
-        /// <summary>
-        /// Радиус земли
-        /// </summary>
-        const double R = 6371000;
-
-        #endregion
-        
         public static TrassalOutParam Trassal(TrassalInParam param)
         {
             var e1 = ToGeocetnricCoord(param.Start);
@@ -103,14 +94,16 @@ namespace DataCalc
         /// <param name="coords">Координаты ломанной</param>
         /// <param name="time_accuracy">Точность по времени</param>
         /// <returns>Данные о пролете по ломанной</returns>
-        public static ObservableCollection<Param> MakeTrassa(double height, double speed, double time, List<GeographCoord> coords, double time_accuracy = 0.001)
+        public static ObservableCollection<Param> MakeTrassa(double height, double speed, double time, List<GeographCoord> coords, 
+            double time_sigma, double psi_sigma, double location_sigma, double time_accuracy = 0.001)
         {
             var in_param = new TrassalInParam() {h = height, V = speed};
             var pl = new List<Param>();
+            double tm;
             for (var i = 1; i < coords.Count; i++)
             {
                 TrassalOutParam res;
-                var tm = time;
+                tm = time;
                 
                 in_param.t = 0;
                 in_param.Start = coords[i - 1];
@@ -146,28 +139,32 @@ namespace DataCalc
             }
 
             StreamWriter f = new StreamWriter("data.txt");
+            tm = 0;
             foreach (var p in pl)
             {
-                var tm = 0.0;
                 while (true)
                 {
                     var res = Trassal(new (){h = p.Height, t = tm, Start = p.Start, End = p.End, V = speed});
-                    Console.WriteLine(new Param()
+                    (double fi, double lambda) cr = CoordRand(res.CurrentGeographCoord.Fi, res.CurrentGeographCoord.Lambda, location_sigma);
+                    f.WriteLine(new Param()
                     {
-                        Time = tm, Fi = res.CurrentGeographCoord.Fi, Lambda = res.CurrentGeographCoord.Lambda,
-                        Height = height, Psi = res.Psi, Tangaz = 0, Kren = 0,
+                        Time = Math.Abs((double)RandomNorm(tm, time_sigma)), Fi = cr.fi, Lambda = cr.lambda,
+                        Height = height, Psi = RandomNorm(res.Psi, psi_sigma), Tangaz = 0, Kren = 0,
                     });
                     tm += time;
                     if (!(tm > p.Time)) continue;
                     if (p == pl.Last())
                     {
                         res = Trassal(new() {h = p.Height, t = p.Time, Start = p.Start, End = p.End, V = speed});
-                        Console.WriteLine(
+                        cr = CoordRand(res.CurrentGeographCoord.Fi, res.CurrentGeographCoord.Lambda, location_sigma);
+                        var t = Math.Abs((double) RandomNorm(p.Time, time_sigma));
+                        f.WriteLine(
                             new Param()
                             {
-                                Time = p.Time, Fi = res.CurrentGeographCoord.Fi, Lambda = res.CurrentGeographCoord.Lambda,
-                                Height = height, Psi = res.Psi, Tangaz = 0, Kren = 0,
+                                Time = t, Fi = cr.fi, Lambda = cr.lambda,
+                                Height = height, Psi = RandomNorm(res.Psi, psi_sigma), Tangaz = 0, Kren = 0,
                             });
+                        f.WriteLine($"{t:0.000000000}");
                     }
                     break;
                 }
@@ -176,84 +173,5 @@ namespace DataCalc
             
             return new ObservableCollection<Param>(pl);
         }
-
-        /// <summary>
-        /// Расчет нормального распределения, принимает mu, sigma
-        /// </summary>
-        public static dynamic RandomNorm { get; }
-        static Calc()
-        {
-            ScriptEngine engine = Python.CreateEngine();
-            ScriptScope scope = engine.CreateScope();
-            engine.ExecuteFile("rnd.py", scope);
-            RandomNorm = scope.GetVariable("rand_norm");
-        }
-
-        #region Приватные функции
-
-        /// <summary>
-        /// Создание трехмерного вектора
-        /// </summary>
-        /// <param name="coord">Географические координты точки</param>
-        /// <returns>Возвращает трехмерный вектор</returns>
-        private static GeocentrCoord ToGeocetnricCoord(GeographCoord coord) =>
-            new GeocentrCoord()
-            {
-                X = Cos(coord.Fi) * Cos(coord.Lambda),
-                Y = Cos(coord.Fi) * Sin(coord.Lambda),
-                Z = Sin(coord.Fi)
-            };
-
-        /// <summary>
-        /// Возвращает sin
-        /// </summary>
-        /// <param name="degr">Градусы</param>
-        /// <returns>Sin</returns>
-        private static double Sin(double degr) =>
-            Math.Sin(ToRadian(degr));
-        
-        /// <summary>
-        /// Возвращает сos
-        /// </summary>
-        /// <param name="degr">Градусы</param>
-        /// <returns>Cos в грудсах</returns>
-        private static double Cos(double degr) =>
-            Math.Cos(ToRadian(degr));
-        
-        /// <summary>
-        /// Возвращает Arcsin
-        /// </summary>
-        /// <param name="nm">Число</param>
-        /// <returns>Arcsin</returns>
-        private static double Arcsin(double nm) =>
-            ToDegrees(Math.Asin(nm));
-        
-        /// <summary>
-        /// Возвращает Arccos
-        /// </summary>
-        /// <param name="nm">Число</param>
-        /// <returns>Arccos</returns>
-        private static double Arccos(double nm) =>
-            ToDegrees(Math.Acos(nm));
-        
-
-        /// <summary>
-        /// Переводит градусы в радианы
-        /// </summary>
-        /// <param name="degrees">Градусы</param>
-        /// <returns>Радианы</returns>
-        private static double ToRadian(double degrees) =>
-            (degrees * Math.PI) / 180;
-
-        
-        /// <summary>
-        /// Переводит радианы в градусы
-        /// </summary>
-        /// <param name="rad">Радианы</param>
-        /// <returns>Градусы</returns>
-        private static double ToDegrees(double rad) =>
-            (rad * 180) / Math.PI;
-
-        #endregion
     }
 }

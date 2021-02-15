@@ -20,11 +20,21 @@ namespace WpfApp1.ViewModels
         public double TimeAll { get; set; } = 0;
 
         public RelayCommand BuildModelCommand { get; }
-        public RelayCommand SaveCommand { get; set; }
+        public RelayCommand SaveCommand { get; }
+        public double TimeSigma { get; set; } = 0.00001;
+        public double PsiSigma { get; set; } = 0.009;
+        public double LocationSigma { get; set; } = 0.1;
 
         public MainViewModel()
         {
-            Coords = new ObservableCollection<GeographCoord>(){new GeographCoord(){Fi = 30, Lambda = 40}, new GeographCoord(){Fi = 31, Lambda = 39}};
+            Coords = new ObservableCollection<GeographCoord>()
+            {
+                new GeographCoord(){Fi = 30, Lambda = 40}, 
+                new GeographCoord(){Fi = 31, Lambda = 39},
+                new GeographCoord(){Fi = 32, Lambda = 36},
+                new GeographCoord(){Fi = 33, Lambda = 31},
+                new GeographCoord(){Fi = 35, Lambda = 25}
+            };
             Params = new ObservableCollection<Param>();
             BuildModelCommand = new RelayCommand(OnBuildModelCommand);
             SaveCommand = new RelayCommand(OnSaveCommand);
@@ -44,7 +54,7 @@ namespace WpfApp1.ViewModels
             Task.Run(
                 () =>
                 {
-                    Params = Calc.MakeTrassa(Height * 1000, Speed, Time, Coords.ToList());
+                    Params = Calc.MakeTrassa(Height * 1000, Speed, Time, Coords.ToList(), TimeSigma, PsiSigma, LocationSigma * 1000);
                     var sum = 0.0;
                     foreach (var param in Params)
                     {

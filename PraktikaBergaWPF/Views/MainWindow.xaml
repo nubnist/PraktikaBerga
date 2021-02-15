@@ -24,55 +24,106 @@
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
-        <!--Параметры трассы-->
-        <materialDesign:Card Padding="32" Margin="16" HorizontalAlignment="Center">
-            <StackPanel Orientation="Vertical">
-                <TextBlock
-                    Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                    Text="Параметры трассы"
-                    Margin="0 0 0 10" HorizontalAlignment="Center"/>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBox
-                        Text="{Binding Height}"
-                        Style="{StaticResource MaterialDesignFilledTextBox}"
-                        VerticalAlignment="Top"
-                        AcceptsReturn="True"
-                        TextWrapping="Wrap"
-                        MaxWidth="400"
-                        Margin="15"
-                        materialDesign:HintAssist.Hint="Высота (км)"
-                    />
-                    <TextBox
-                        Text="{Binding Speed}"
-                        Style="{StaticResource MaterialDesignFilledTextBox}"
-                        VerticalAlignment="Top"
-                        AcceptsReturn="True"
-                        TextWrapping="Wrap"
-                        MaxWidth="400"
-                        Margin="15"
-                        materialDesign:HintAssist.Hint="Скорость (м/сек)" />
-                    <TextBox
-                        Text="{Binding Time}"
-                        Style="{StaticResource MaterialDesignFilledTextBox}"
-                        VerticalAlignment="Top"
-                        AcceptsReturn="True"
-                        TextWrapping="Wrap"
-                        MaxWidth="400"
-                        Margin="15"
-                        materialDesign:HintAssist.Hint="Шаг по времени" />
-                </StackPanel>
-                <Button
-                    Command="{Binding BuildModelCommand}"
-                    HorizontalAlignment="Center"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    Height="40"
-                    materialDesign:ButtonAssist.CornerRadius="5"
-                    ToolTip="Начать построение модели">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+            <!--Параметры трассы-->
+            <materialDesign:Card Padding="32" Margin="16">
+                <StackPanel Orientation="Vertical">
                     <TextBlock
-                        Text="Построение модели" />
-                </Button>
-            </StackPanel>
-        </materialDesign:Card>
+                        Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                        Text="Параметры трассы"
+                        Margin="0 0 0 10" HorizontalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBox
+                            Text="{Binding Height}"
+                            Style="{StaticResource MaterialDesignFilledTextBox}"
+                            VerticalAlignment="Top"
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            MaxWidth="400"
+                            Margin="15"
+                            materialDesign:HintAssist.Hint="Высота (км)"
+                        />
+                        <TextBox
+                            Text="{Binding Speed}"
+                            Style="{StaticResource MaterialDesignFilledTextBox}"
+                            VerticalAlignment="Top"
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            MaxWidth="400"
+                            Margin="15"
+                            materialDesign:HintAssist.Hint="Скорость (м/сек)" />
+                        <TextBox
+                            Text="{Binding Time}"
+                            Style="{StaticResource MaterialDesignFilledTextBox}"
+                            VerticalAlignment="Top"
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            MaxWidth="400"
+                            Margin="15"
+                            materialDesign:HintAssist.Hint="Шаг по времени" />
+                    </StackPanel>
+                    <Button
+                        Command="{Binding BuildModelCommand}"
+                        HorizontalAlignment="Center"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Height="40"
+                        materialDesign:ButtonAssist.CornerRadius="5"
+                        ToolTip="Начать построение модели">
+                        <TextBlock
+                            Text="Построение модели" />
+                    </Button>
+                </StackPanel>
+            </materialDesign:Card>
+            
+            <!--Параметры нормального отклонения-->
+            <materialDesign:Card Padding="32" Margin="16">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock
+                        Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                        Text="Ошибки измерения"
+                        Margin="0 0 0 10" HorizontalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBox
+                            Text="{Binding TimeSigma}"
+                            Style="{StaticResource MaterialDesignFilledTextBox}"
+                            VerticalAlignment="Top"
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            MaxWidth="400"
+                            Margin="15"
+                            materialDesign:HintAssist.Hint="Времени (с)"
+                        />
+                        <TextBox
+                            Text="{Binding PsiSigma}"
+                            Style="{StaticResource MaterialDesignFilledTextBox}"
+                            VerticalAlignment="Top"
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            MaxWidth="400"
+                            Margin="15"
+                            materialDesign:HintAssist.Hint="Курсового угла (градусы)" />
+                        <TextBox
+                            Text="{Binding LocationSigma}"
+                            Style="{StaticResource MaterialDesignFilledTextBox}"
+                            VerticalAlignment="Top"
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            MaxWidth="400"
+                            Margin="15"
+                            materialDesign:HintAssist.Hint="Местоположения (км)" />
+                    </StackPanel>
+                    <Button
+                        HorizontalAlignment="Center"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Height="40"
+                        materialDesign:ButtonAssist.CornerRadius="5"
+                        ToolTip="Начать построение модели">
+                        <TextBlock
+                            Text="Подтвердить" />
+                    </Button>
+                </StackPanel>
+            </materialDesign:Card>
+        </StackPanel>
         
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -100,7 +151,10 @@
             </materialDesign:Card>
             
             <!--Данные измерений-->
-            <materialDesign:Card Grid.Column="1" Padding="32" Margin="16" >
+            <materialDesign:Card Grid.Column="1" Padding="32" Margin="16">
+                <materialDesign:Card.Effect>
+                    <BlurEffect Radius="8"></BlurEffect>
+                </materialDesign:Card.Effect>
                 <DockPanel>
                     <TextBlock
                         Style="{StaticResource MaterialDesignHeadline6TextBlock}"

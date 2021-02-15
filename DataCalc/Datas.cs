@@ -17,6 +17,8 @@ namespace DataCalc
             public double Psi { get; set; }
             public double Tangaz { get; set; }
             public double Kren { get; set; }
+            public GeographCoord Start { get; set; }
+            public GeographCoord End { get; set; }
 
             public override string ToString()
             {
@@ -151,7 +153,6 @@ namespace DataCalc
             /// Время, прошедшее с начала полета ЛА по трассе (секунды)
             /// </summary>
             public double t { get; set; }
-
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using IronPython.Hosting;
 using Microsoft.Scripting.Hosting;
@@ -56,7 +57,7 @@ namespace DataCalc
                 || Math.Round(lambda, 6) > Math.Max(param.Start.Lambda, param.End.Lambda)
             )
             {
-                throw new Exception("Вышел за пределы точек");
+                return null;
             }
 
             // Вектор скорости ЛА в момент t
@@ -117,14 +118,13 @@ namespace DataCalc
                 
                 while (true)
                 {
-                    try
+                    if ((res = Trassal(in_param)) is not null)
                     {
-                        res = Trassal(in_param);
                         if (tm <= time_accuracy)
                             break;
                         in_param.t += tm;
                     }
-                    catch (Exception e)
+                    else
                     {
                         in_param.t -= tm;
                         tm /= 2;
@@ -133,37 +133,62 @@ namespace DataCalc
                 }
                 pl.Add(new Param()
                 {
-                    Fi = RandomNorm(res.CurrentGeographCoord.Fi), 
-                    Lambda = RandomNorm(res.CurrentGeographCoord.Lambda),
-                    Height = RandomNorm(height),
-                    Psi = RandomNorm(res.Psi),
-                    Time = RandomNorm(in_param.t),
+                    Fi = res.CurrentGeographCoord.Fi, 
+                    Lambda = res.CurrentGeographCoord.Lambda,
+                    Height = height,
+                    Psi = res.Psi,
+                    Time = in_param.t,
                     Kren = 0,
-                    Tangaz = 0
+                    Tangaz = 0,
+                    Start = new GeographCoord(){Fi = coords[i-1].Fi, Lambda = coords[i-1].Lambda},
+                    End = new GeographCoord(){Fi = coords[i].Fi, Lambda = coords[i].Lambda}
                 });
             }
+
+            StreamWriter f = new StreamWriter("data.txt");
+            foreach (var p in pl)
+            {
+                var tm = 0.0;
+                while (true)
+                {
+                    var res = Trassal(new (){h = p.Height, t = tm, Start = p.Start, End = p.End, V = speed});
+                    Console.WriteLine(new Param()
+                    {
+                        Time = tm, Fi = res.CurrentGeographCoord.Fi, Lambda = res.CurrentGeographCoord.Lambda,
+                        Height = height, Psi = res.Psi, Tangaz = 0, Kren = 0,
+                    });
+                    tm += time;
+                    if (!(tm > p.Time)) continue;
+                    if (p == pl.Last())
+                    {
+                        res = Trassal(new() {h = p.Height, t = p.Time, Start = p.Start, End = p.End, V = speed});
+                        Console.WriteLine(
+                            new Param()
+                            {
+                                Time = p.Time, Fi = res.CurrentGeographCoord.Fi, Lambda = res.CurrentGeographCoord.Lambda,
+                                Height = height, Psi = res.Psi, Tangaz = 0, Kren = 0,
+                            });
+                    }
+                    break;
+                }
+            }
+            f.Close();
             
             return new ObservableCollection<Param>(pl);
         }
 
-        public static dynamic RandomNorm(double sigma, double rasp = 0.001)
+        /// <summary>
+        /// Расчет нормального распределения, принимает mu, sigma
+        /// </summary>
+        public static dynamic RandomNorm { get; }
+        static Calc()
         {
-            var py =
-                "import random\n"
-                + $"res = random.normalvariate({sigma}, 0.001)";
             ScriptEngine engine = Python.CreateEngine();
             ScriptScope scope = engine.CreateScope();
-            scope.SetVariable("sigma", sigma);
-            scope.SetVariable("raspr", rasp);
             engine.ExecuteFile("rnd.py", scope);
-
-            var a = 55;
-            
-            return scope.GetVariable("res");;
+            RandomNorm = scope.GetVariable("rand_norm");
         }
-        
 
-        
         #region Приватные функции
 
         /// <summary>

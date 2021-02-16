@@ -21,9 +21,9 @@ namespace WpfApp1.ViewModels
 
         public RelayCommand BuildModelCommand { get; }
         public RelayCommand SaveCommand { get; }
-        public double TimeSigma { get; set; } = 0.00001;
-        public double PsiSigma { get; set; } = 0.009;
-        public double LocationSigma { get; set; } = 0.1;
+        public double TimeSigma { get; set; } = 0;
+        public double PsiSigma { get; set; } = 0;
+        public double LocationSigma { get; set; } = 0;
 
         public MainViewModel()
         {

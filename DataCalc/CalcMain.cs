@@ -144,7 +144,8 @@ namespace DataCalc
             {
                 while (true)
                 {
-                    var res = Trassal(new (){h = p.Height, t = tm, Start = p.Start, End = p.End, V = speed});
+                    var tst = pl.GetRange(0, pl.IndexOf(p)).Sum(i => i.Time);
+                    var res = Trassal(new (){h = p.Height, t = tm - tst, Start = p.Start, End = p.End, V = speed});
                     (double fi, double lambda) cr = CoordRand(res.CurrentGeographCoord.Fi, res.CurrentGeographCoord.Lambda, location_sigma);
                     f.WriteLine(new Param()
                     {
@@ -152,12 +153,12 @@ namespace DataCalc
                         Height = height, Psi = RandomNorm(res.Psi, psi_sigma), Tangaz = 0, Kren = 0,
                     });
                     tm += time;
-                    if (!(tm > p.Time)) continue;
+                    if (tm <= pl.GetRange(0, pl.IndexOf(p) + 1).Sum(i => i.Time)) continue;
                     if (p == pl.Last())
                     {
                         res = Trassal(new() {h = p.Height, t = p.Time, Start = p.Start, End = p.End, V = speed});
                         cr = CoordRand(res.CurrentGeographCoord.Fi, res.CurrentGeographCoord.Lambda, location_sigma);
-                        var t = Math.Abs((double) RandomNorm(p.Time, time_sigma));
+                        var t = Math.Abs((double) RandomNorm(pl.Sum(i => i.Time), time_sigma));
                         f.WriteLine(
                             new Param()
                             {

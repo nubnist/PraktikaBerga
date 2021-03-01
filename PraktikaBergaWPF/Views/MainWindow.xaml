@@ -80,7 +80,7 @@
                 <StackPanel Orientation="Vertical">
                     <TextBlock
                         Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                        Text="Ошибки измерения"
+                        Text="Средние ошибки измерения параметров"
                         Margin="0 0 0 10" HorizontalAlignment="Center"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBox
@@ -112,15 +112,6 @@
                             Margin="15"
                             materialDesign:HintAssist.Hint="Местоположения (км)" />
                     </StackPanel>
-                    <Button
-                        HorizontalAlignment="Center"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        Height="40"
-                        materialDesign:ButtonAssist.CornerRadius="5"
-                        ToolTip="Начать построение модели">
-                        <TextBlock
-                            Text="Подтвердить" />
-                    </Button>
                 </StackPanel>
             </materialDesign:Card>
         </StackPanel>

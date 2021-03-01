@@ -29,6 +29,13 @@ namespace DataCalc
             RandomNorm = scope.GetVariable("rand_norm");
         }
 
+        /// <summary>
+        /// Расчет нормально распределенной погрешности координат летательного аппарата.
+        /// </summary>
+        /// <param name="fi">Широта.</param>
+        /// <param name="lambda">Долгота</param>
+        /// <param name="sigma">Среднее отклонение.</param>
+        /// <returns></returns>
         private static (double, double) CoordRand(double fi, double lambda, double sigma)
         {
             double e = RandomNorm(0, sigma);
@@ -42,10 +49,10 @@ namespace DataCalc
         }
 
         /// <summary>
-        /// Создание трехмерного вектора
+        /// Создание трехмерного вектора.
         /// </summary>
-        /// <param name="coord">Географические координты точки</param>
-        /// <returns>Возвращает трехмерный вектор</returns>
+        /// <param name="coord">Географические координты точки.</param>
+        /// <returns>Трехмерный вектор.</returns>
         private static GeocentrCoord ToGeocetnricCoord(GeographCoord coord) =>
             new GeocentrCoord()
             {

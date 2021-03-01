@@ -13,6 +13,12 @@ namespace DataCalc
 {
     public static partial class Calc
     {
+        
+        public static void MakeStream()
+        {
+            
+        }
+        
         public static TrassalOutParam Trassal(TrassalInParam param)
         {
             var e1 = ToGeocetnricCoord(param.Start);
@@ -95,7 +101,7 @@ namespace DataCalc
         /// <param name="time_accuracy">Точность по времени</param>
         /// <returns>Данные о пролете по ломанной</returns>
         public static ObservableCollection<Param> MakeTrassa(double height, double speed, double time, List<GeographCoord> coords, 
-            double time_sigma, double psi_sigma, double location_sigma, double time_accuracy = 0.001)
+            double time_sigma = 0, double psi_sigma = 0, double location_sigma = 0, double time_accuracy = 0.001)
         {
             var in_param = new TrassalInParam() {h = height, V = speed};
             var pl = new List<Param>();

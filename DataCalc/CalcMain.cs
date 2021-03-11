@@ -29,6 +29,7 @@ namespace DataCalc
 			CharacteristicMovingLA charact_mov_la,
 			List<CharacteristicRAN> characts_ran, Catalog catalog)
 		{
+			//TODO: Для характеристик излучаемого потока сигналов сделать случаное значение для нулевых элементов
 			IEnumerable<(double start, double end, CharacteristicRAN charact)> cycle_ran = characts_ran // Определение начал и концов подциклов
 			   .Select
 				(
@@ -47,14 +48,13 @@ namespace DataCalc
 				var dur = stream.Tau + stream.Dt; // Шаг излучения (длительность импульса + межимпульсный интервал)
 				for (; time <= time_cyclogram; time += dur) // Перебор импульсов в подцикле
 				{
-					var res = cycle_ran // Определение принадлежности к строке параметров системы РЭН
-					   .First(i => i.start <= time 
-					               && i.end >= time
-					               && i.charact.MinSignal <= stream.F
-					               && i.charact.MaxSignal >= stream.F);
-					if (res.Equals(default(ValueTuple<double, double, CharacteristicRAN>))) break; // Не входит в циклограмму работы РЭН
-					
-					
+					var is_ran = cycle_ran // Определение принадлежности к циклограмме работы системы РЭН
+					   .FirstOrDefault(
+							i => i.start <= time
+							     && i.end >= time
+							     && i.charact.MinSignal <= stream.F
+							     && i.charact.MaxSignal >= stream.F);
+					if (is_ran.Equals(default(ValueTuple<double, double, CharacteristicRAN>))) break; // Не входит в циклограмму работы РЭН - выходим из цикла
 				}
 			}
 		}
@@ -140,7 +140,7 @@ namespace DataCalc
 		/// <param name="coords">Координаты ломанной</param>
 		/// <param name="time_accuracy">Точность по времени</param>
 		/// <returns>Данные о пролете по ломанной</returns>
-		public static ObservableCollection<Param> MakeTrassa(
+		public static IEnumerable<Param> MakeTrassa(
 			double height, double speed, double time, List<GeographCoord> coords,
 			double time_sigma = 0, double psi_sigma = 0, double location_sigma = 0, double time_accuracy = 0.001)
 		{
@@ -189,19 +189,22 @@ namespace DataCalc
 
 			StreamWriter f = new StreamWriter("data.txt");
 			tm = 0;
+			IList<Param> result = new List<Param>();
 			foreach (var p in pl)
 			{
 				while (true)
 				{
+					Param r;
 					var tst = pl.GetRange(0, pl.IndexOf(p)).Sum(i => i.Time);
 					var res = Trassal(new() {h = p.Height, t = tm - tst, Start = p.Start, End = p.End, V = speed});
 					(double fi, double lambda) cr = CoordRand(res.CurrentGeographCoord.Fi, res.CurrentGeographCoord.Lambda, location_sigma);
-					f.WriteLine(
-						new Param()
-						{
-							Time = Math.Abs((double) RandomNorm(tm, time_sigma)), Fi = cr.fi, Lambda = cr.lambda,
-							Height = height, Psi = RandomNorm(res.Psi, psi_sigma), Tangaz = 0, Kren = 0,
-						});
+					r = new Param()
+					{
+						Time = Math.Abs((double) RandomNorm(tm, time_sigma)), Fi = cr.fi, Lambda = cr.lambda,
+						Height = height, Psi = RandomNorm(res.Psi, psi_sigma), Tangaz = 0, Kren = 0,
+					};
+					result.Add(r);
+					f.WriteLine(r);
 					tm += time;
 					if (tm <= pl.GetRange(0, pl.IndexOf(p) + 1).Sum(i => i.Time)) continue;
 					if (p == pl.Last())
@@ -209,12 +212,13 @@ namespace DataCalc
 						res = Trassal(new() {h = p.Height, t = p.Time, Start = p.Start, End = p.End, V = speed});
 						cr = CoordRand(res.CurrentGeographCoord.Fi, res.CurrentGeographCoord.Lambda, location_sigma);
 						var t = Math.Abs((double) RandomNorm(pl.Sum(i => i.Time), time_sigma));
-						f.WriteLine(
-							new Param()
-							{
-								Time = t, Fi = cr.fi, Lambda = cr.lambda,
-								Height = height, Psi = RandomNorm(res.Psi, psi_sigma), Tangaz = 0, Kren = 0,
-							});
+						r = new Param()
+						{
+							Time = t, Fi = cr.fi, Lambda = cr.lambda,
+							Height = height, Psi = RandomNorm(res.Psi, psi_sigma), Tangaz = 0, Kren = 0,
+						};
+						result.Add(r);
+						f.WriteLine(r);
 						f.WriteLine($"{t:0.000000000}");
 					}
 
@@ -224,7 +228,7 @@ namespace DataCalc
 
 			f.Close();
 
-			return new ObservableCollection<Param>(pl);
+			return result;
 		}
 	}
 }

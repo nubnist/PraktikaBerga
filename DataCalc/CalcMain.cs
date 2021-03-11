@@ -30,31 +30,65 @@ namespace DataCalc
 			List<CharacteristicRAN> characts_ran, Catalog catalog)
 		{
 			//TODO: Для характеристик излучаемого потока сигналов сделать случаное значение для нулевых элементов
-			IEnumerable<(double start, double end, CharacteristicRAN charact)> cycle_ran = characts_ran // Определение начал и концов подциклов
+			IEnumerable<(double start, double end, CharacteristicRAN charact)> cycle_ran = characts_ran		// Определение начал и концов подциклов
 			   .Select
 				(
 					i =>
 					(
-						characts_ran.Take(characts_ran.IndexOf(i)).Sum(j => j.Duration), // Начало подцикла
-						characts_ran.Take(characts_ran.IndexOf(i) + 1).Sum(j => j.Duration), // Конец подцикла
+						characts_ran.Take(characts_ran.IndexOf(i)).Sum(j => j.Duration),						// Начало подцикла
+						characts_ran.Take(characts_ran.IndexOf(i) + 1).Sum(j => j.Duration),					// Конец подцикла
 						i // Элемент подцикла
 					)
 				);
-			double time = 0; // Сквозное время
-			double time_cyclogram = 0; // Общее время продолжительности подциклов
-			foreach (var stream in characts_stream) // Перебор циклограммы процесса излучения ИРИ
+			
+			double time = 0;																					// Сквозное время
+			double time_cyclogram = 0;																			// Общее время продолжительности подциклов
+			foreach (var stream in characts_stream)																// Перебор циклограммы процесса излучения ИРИ
 			{
-				time_cyclogram += stream.Duration; // Увеличение общей продолжительности подциклов на продолжительность текущего подцикла
-				var dur = stream.Tau + stream.Dt; // Шаг излучения (длительность импульса + межимпульсный интервал)
-				for (; time <= time_cyclogram; time += dur) // Перебор импульсов в подцикле
+				time_cyclogram += stream.Duration;																// Увеличение общей продолжительности подциклов на продолжительность текущего подцикла
+				var dur = stream.Tau + stream.Dt;															// Шаг излучения (длительность импульса + межимпульсный интервал)
+				for (; time <= time_cyclogram; time += dur)														// Перебор импульсов в подцикле
 				{
-					var is_ran = cycle_ran // Определение принадлежности к циклограмме работы системы РЭН
+					var is_ran = cycle_ran																// Определение принадлежности к циклограмме работы системы РЭН
 					   .FirstOrDefault(
-							i => i.start <= time
-							     && i.end >= time
+							i => i.start * 1000 <= time															// Умножаю на 1000 чтобы перевести секунды в милесекунды
+							     && i.end * 1000 >= time
 							     && i.charact.MinSignal <= stream.F
 							     && i.charact.MaxSignal >= stream.F);
-					if (is_ran.Equals(default(ValueTuple<double, double, CharacteristicRAN>))) break; // Не входит в циклограмму работы РЭН - выходим из цикла
+					if (is_ran.Equals(default(ValueTuple<double, double, CharacteristicRAN>))) break;			// Не входит в циклограмму работы РЭН - выходим из цикла
+					var trassa = 
+						MakeTrassa(charact_mov_la.Height, charact_mov_la.Speed, dur, charact_mov_la.Coords);	// Расчет данных о полете ЛА по ломанной
+					var current_data_la = trassa.FirstOrDefault(i => i.Time.Equals(time));				// Поиск данных для текущего времени
+					if (current_data_la is null) break;															// Если такого времени в расчетах нет, то выходим из цикла
+					var p_iri = new GeocentrCoord()																// Геоцентрические координаты ИРИ
+					{	
+						X = R*Cos(charact_iri.Coord.Fi)*Cos(charact_iri.Coord.Lambda),
+						Y = R*Cos(charact_iri.Coord.Fi)*Sin(charact_iri.Coord.Lambda),
+						Z = R*Sin(charact_iri.Coord.Fi)
+					};
+					var p_la = new GeocentrCoord()																// Геоцентрические координаты ЛА
+					{	
+						X = R*Cos(current_data_la.Fi)*Cos(current_data_la.Lambda),
+						Y = R*Cos(current_data_la.Fi)*Sin(current_data_la.Lambda),
+						Z = R*Sin(current_data_la.Fi)
+					};
+					var D = 1.15 * Math.Sqrt(Math.Pow(R+current_data_la.Height, 2) - R*R);				// Дальность радиогаризонта
+					//TODO: Добавить проверку на нахождение в пределах радиовидимости ЛА
+					var p_la_iri = p_iri - p_la;													// Геоцентрические координаты вектора, направленного от ЛА к ИРИ
+					var r_la_iri = GeocentrCoord.Abs(p_la_iri);											// Расстояние между ЛА и ИРИ
+					var c = (p_la_iri * current_data_la.v) / r_la_iri;									// Косинус угла пеленга
+					if (is_ran.charact.BMin > c || is_ran.charact.BMax < c) break;								// Если угол пеленга не попадает в диапазон - выход из цикла
+					var delta_la_iri =																	// Борт приема сигнала TODO: убрать нули - уберу после отладки
+						p_la_iri.X * current_data_la.v.Y * 0 +
+						p_la_iri.Y * current_data_la.v.Z * 0 +
+						p_la_iri.Z * current_data_la.v.X * 1 -
+						p_la_iri.Z * current_data_la.v.Z * 0 -
+						p_la_iri.Y * current_data_la.v.X * 0 -
+						p_la_iri.X * current_data_la.v.Z * 1;
+					if (delta_la_iri < 0 && is_ran.charact.Board == CharacteristicRAN.Boards.R ||				// Если знае не соответствует бортам - выход из цикла
+					    delta_la_iri > 0 && is_ran.charact.Board == CharacteristicRAN.Boards.L)
+						break;
+					//TODO: Необходимо реализовать пятую проверку - сравнение с аналогичной парой, соответствующей последнему из "оформленных пакетов"
 				}
 			}
 		}
@@ -201,7 +235,7 @@ namespace DataCalc
 					r = new Param()
 					{
 						Time = Math.Abs((double) RandomNorm(tm, time_sigma)), Fi = cr.fi, Lambda = cr.lambda,
-						Height = height, Psi = RandomNorm(res.Psi, psi_sigma), Tangaz = 0, Kren = 0,
+						Height = height, Psi = RandomNorm(res.Psi, psi_sigma), Tangaz = 0, Kren = 0, v = res.v
 					};
 					result.Add(r);
 					f.WriteLine(r);
@@ -215,7 +249,7 @@ namespace DataCalc
 						r = new Param()
 						{
 							Time = t, Fi = cr.fi, Lambda = cr.lambda,
-							Height = height, Psi = RandomNorm(res.Psi, psi_sigma), Tangaz = 0, Kren = 0,
+							Height = height, Psi = RandomNorm(res.Psi, psi_sigma), Tangaz = 0, Kren = 0, v = res.v
 						};
 						result.Add(r);
 						f.WriteLine(r);

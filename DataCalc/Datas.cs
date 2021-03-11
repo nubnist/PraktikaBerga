@@ -11,9 +11,18 @@ namespace DataCalc
     public class CharacteristicRAN
     {
         /// <summary>
+        /// Борты ЛА
+        /// </summary>
+        public enum Boards
+        {
+            L,
+            R
+        }
+        
+        /// <summary>
         /// Борт
         /// </summary>
-        public string Board { get; set; }
+        public Boards Board { get; set; }
         /// <summary>
         /// Продолжительность подцикла
         /// </summary>
@@ -50,7 +59,7 @@ namespace DataCalc
         public double Height { get; set; }
         public double Speed { get; set; }
         public double Time { get; set; }
-        public IEnumerable<GeographCoord> Coords { get; set; }
+        public List<GeographCoord> Coords { get; set; }
     }
     
     /// <summary>
@@ -161,6 +170,8 @@ namespace DataCalc
         public double Kren { get; set; }
         public GeographCoord Start { get; set; }
         public GeographCoord End { get; set; }
+        
+        public GeocentrCoord v { get; set; }
 
         public override string ToString()
         {

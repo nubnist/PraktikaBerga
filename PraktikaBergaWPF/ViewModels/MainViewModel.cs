@@ -54,7 +54,7 @@ namespace WpfApp1.ViewModels
             Task.Run(
                 () =>
                 {
-                    Params = Calc.MakeTrassa(Height * 1000, Speed, Time, Coords.ToList(), TimeSigma, PsiSigma, LocationSigma * 1000);
+                    Params = new ObservableCollection<Param>(Calc.MakeTrassa(Height * 1000, Speed, Time, Coords.ToList(), TimeSigma, PsiSigma, LocationSigma * 1000));
                     var sum = 0.0;
                     foreach (var param in Params)
                     {

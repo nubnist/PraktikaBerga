@@ -5,153 +5,157 @@ using System.Globalization;
 
 namespace DataCalc
 {
-    /// <summary>
-    /// Параметры системы РЭН, размещенной на борту ЛА
-    /// </summary>
-    public class CharacteristicRAN
-    {
-        /// <summary>
-        /// Борты ЛА
-        /// </summary>
-        public enum Boards
-        {
-            L,
-            R
-        }
-        
-        /// <summary>
-        /// Борт
-        /// </summary>
-        public Boards Board { get; set; }
-        /// <summary>
-        /// Продолжительность подцикла
-        /// </summary>
-        public double Duration { get; set; }
-        /// <summary>
-        /// Минимальная принимаемая частота сигналов
-        /// </summary>
-        public double MinSignal { get; set; }
-        /// <summary>
-        /// Максимальная принимаемая частота сигналов
-        /// </summary>
-        public double MaxSignal { get; set; }
 
-        /// <summary>
-        /// Минимальный угол пеленга
-        /// </summary>
-        public double BMin { get; set; }
-        /// <summary>
-        /// Максимальный угол пелена
-        /// </summary>
-        public double BMax { get; set; }
-        /// <summary>
-        /// Количество импульсов, объединяемыъ в од ин пакет при приеме
-        /// серии близких по характеристикам сигналов
-        /// </summary>
-        public int N { get; set; }
-    }
-     
+#region Структуры данных для процедуры MakeStream
+
+ /// <summary>
+/// Параметры системы РЭН, размещенной на борту ЛА
+/// </summary>
+public class CharacteristicRAN
+{
     /// <summary>
-    /// Характеристики процесса перемещения летательного аппарата (ЛА)
+    /// Борты ЛА
     /// </summary>
-    public class CharacteristicMovingLA
+    public enum Boards
     {
-        public double Height { get; set; }
-        public double Speed { get; set; }
-        public double Time { get; set; }
-        public List<GeographCoord> Coords { get; set; }
+        L,
+        R
     }
     
     /// <summary>
-    /// Характеристики источника ИРИ
+    /// Борт
     /// </summary>
-    public class CharacteristicIRI
-    {
-        /// <summary>
-        /// Условный номер ИЛИ 
-        /// </summary>
-        public int NType { get; set; }
-        /// <summary>
-        /// Географические координаты точки размещения ИРИ на поверхности земли
-        /// </summary>
-        public GeographCoord Coord { get; set; }
-    }
-    
+    public Boards Board { get; set; }
     /// <summary>
-    /// Характеристики излучаемого потока сигналов
+    /// Продолжительность подцикла
     /// </summary>
-    public class CharacteristicStream
-    {
-        /// <summary>
-        /// Номер типорежима
-        /// </summary>
-        public int Nres { get; set; }
-        /// <summary>
-        /// Несущая частота
-        /// </summary>
-        public double F { get; set; }
-        /// <summary>
-        /// Длительность импульса
-        /// </summary>
-        public double Tau { get; set; }
-        /// <summary>
-        /// Межимпульсный интервал
-        /// </summary>
-        public double Dt { get; set; }
-        /// <summary>
-        /// Продолжительность подцикла
-        /// </summary>
-        public double Duration { get; set; }
-    }
+    public double Duration { get; set; }
+    /// <summary>
+    /// Минимальная принимаемая частота сигналов
+    /// </summary>
+    public double MinSignal { get; set; }
+    /// <summary>
+    /// Максимальная принимаемая частота сигналов
+    /// </summary>
+    public double MaxSignal { get; set; }
 
     /// <summary>
-    /// База каталогов типов РЭС
+    /// Минимальный угол пеленга
     /// </summary>
-    public class Catalog
-    {
-        /// <summary>
-        /// Код типа РЭС
-        /// </summary>
-        public string Type { get; set; }
-        /// <summary>
-        /// Условный номер типа
-        /// </summary>
-        public int NType { get; set; }
-        /// <summary>
-        /// Номер типорежима
-        /// </summary>
-        public int Nres { get; set; }
-        /// <summary>
-        /// Минимальная несущая частота сигналов
-        /// </summary>
-        public double FMin { get; set; }
-        /// <summary>
-        /// Максимальная несущая частота сигналов
-        /// </summary>
-        public double FMax { get; set; }
-        /// <summary>
-        /// Минимальная длительность импульса
-        /// </summary>
-        public double TauMin { get; set; }
-        /// <summary>
-        /// Максимальная длительность импульса
-        /// </summary>
-        public double TauMax { get; set; }
-        /// <summary>
-        /// Минимальный межимпульсный интервал
-        /// </summary>
-        public double DtMin { get; set; }
-        /// <summary>
-        /// Максимальный межимпульсный интервал
-        /// </summary>
-        public double DtMax { get; set; }
-        /// <summary>
-        /// Код вида модуляции
-        /// </summary>
-        public string Kod { get; set; }
-    }
-    
-    
+    public double BMin { get; set; }
+    /// <summary>
+    /// Максимальный угол пелена
+    /// </summary>
+    public double BMax { get; set; }
+    /// <summary>
+    /// Количество импульсов, объединяемыъ в од ин пакет при приеме
+    /// серии близких по характеристикам сигналов
+    /// </summary>
+    public int N { get; set; }
+}
+ 
+/// <summary>
+/// Характеристики процесса перемещения летательного аппарата (ЛА)
+/// </summary>
+public class CharacteristicMovingLA
+{
+    public double Height { get; set; }
+    public double Speed { get; set; }
+    public double Time { get; set; }
+    public List<GeographCoord> Coords { get; set; }
+}
+
+/// <summary>
+/// Характеристики источника ИРИ
+/// </summary>
+public class CharacteristicIRI
+{
+    /// <summary>
+    /// Условный номер ИЛИ 
+    /// </summary>
+    public int NType { get; set; }
+    /// <summary>
+    /// Географические координаты точки размещения ИРИ на поверхности земли
+    /// </summary>
+    public GeographCoord Coord { get; set; }
+}
+
+/// <summary>
+/// Характеристики излучаемого потока сигналов
+/// </summary>
+public class CharacteristicStream
+{
+    /// <summary>
+    /// Номер типорежима
+    /// </summary>
+    public int Nres { get; set; }
+    /// <summary>
+    /// Несущая частота
+    /// </summary>
+    public double F { get; set; }
+    /// <summary>
+    /// Длительность импульса
+    /// </summary>
+    public double Tau { get; set; }
+    /// <summary>
+    /// Межимпульсный интервал
+    /// </summary>
+    public double Dt { get; set; }
+    /// <summary>
+    /// Продолжительность подцикла
+    /// </summary>
+    public double Duration { get; set; }
+}
+
+/// <summary>
+/// База каталогов типов РЭС
+/// </summary>
+public class Catalog
+{
+    /// <summary>
+    /// Код типа РЭС
+    /// </summary>
+    public string Type { get; set; }
+    /// <summary>
+    /// Условный номер типа
+    /// </summary>
+    public int NType { get; set; }
+    /// <summary>
+    /// Номер типорежима
+    /// </summary>
+    public int Nres { get; set; }
+    /// <summary>
+    /// Минимальная несущая частота сигналов
+    /// </summary>
+    public double FMin { get; set; }
+    /// <summary>
+    /// Максимальная несущая частота сигналов
+    /// </summary>
+    public double FMax { get; set; }
+    /// <summary>
+    /// Минимальная длительность импульса
+    /// </summary>
+    public double TauMin { get; set; }
+    /// <summary>
+    /// Максимальная длительность импульса
+    /// </summary>
+    public double TauMax { get; set; }
+    /// <summary>
+    /// Минимальный межимпульсный интервал
+    /// </summary>
+    public double DtMin { get; set; }
+    /// <summary>
+    /// Максимальный межимпульсный интервал
+    /// </summary>
+    public double DtMax { get; set; }
+    /// <summary>
+    /// Код вида модуляции
+    /// </summary>
+    public string Kod { get; set; }
+}
+
+#endregion
+   
     
     
     #region Структуры данных для измерений

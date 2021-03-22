@@ -3,10 +3,16 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net5.0</TargetFramework>
+        <RootNamespace>PraktikaBerga</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\DataCalc\DataCalc.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="IronPython" Version="2.7.11" />
+      <PackageReference Include="IronPython.StdLib" Version="2.7.11" />
     </ItemGroup>
 
 </Project>

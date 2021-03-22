@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PraktikaBerga", "PraktikaBerga\PraktikaBerga.csproj", "{2E42B0CB-41A4-4872-9E4C-2AEAD8EF7131}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PraktikaBergaTest", "PraktikaBergaTest\PraktikaBergaTest.csproj", "{2E42B0CB-41A4-4872-9E4C-2AEAD8EF7131}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataCalc", "DataCalc\DataCalc.csproj", "{8BE7F882-7F89-4ED7-B0D2-DB1A4F8DA3E1}"
 EndProject

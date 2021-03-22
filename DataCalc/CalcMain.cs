@@ -30,7 +30,7 @@ namespace DataCalc
 			List<CharacteristicRAN> characts_ran, Catalog catalog)
 		{
 			//TODO: Для характеристик излучаемого потока сигналов сделать случаное значение для нулевых элементов
-			IEnumerable<(double start, double end, CharacteristicRAN charact)> cycle_ran = characts_ran		// Определение начал и концов подциклов
+			IEnumerable<(double start, double end, CharacteristicRAN charact)> cycle_ran = characts_ran			// Определение начал и концов подциклов
 			   .Select
 				(
 					i =>
@@ -46,10 +46,10 @@ namespace DataCalc
 			foreach (var stream in characts_stream)																// Перебор циклограммы процесса излучения ИРИ
 			{
 				time_cyclogram += stream.Duration;																// Увеличение общей продолжительности подциклов на продолжительность текущего подцикла
-				var dur = stream.Tau + stream.Dt;															// Шаг излучения (длительность импульса + межимпульсный интервал)
+				var dur = stream.Tau + stream.Dt;																// Шаг излучения (длительность импульса + межимпульсный интервал)
 				for (; time <= time_cyclogram; time += dur)														// Перебор импульсов в подцикле
 				{
-					var is_ran = cycle_ran																// Определение принадлежности к циклограмме работы системы РЭН
+					var is_ran = cycle_ran																		// Определение принадлежности к циклограмме работы системы РЭН
 					   .FirstOrDefault(
 							i => i.start * 1000 <= time															// Умножаю на 1000 чтобы перевести секунды в милесекунды
 							     && i.end * 1000 >= time
@@ -58,7 +58,7 @@ namespace DataCalc
 					if (is_ran.Equals(default(ValueTuple<double, double, CharacteristicRAN>))) break;			// Не входит в циклограмму работы РЭН - выходим из цикла
 					var trassa = 
 						MakeTrassa(charact_mov_la.Height, charact_mov_la.Speed, dur, charact_mov_la.Coords);	// Расчет данных о полете ЛА по ломанной
-					var current_data_la = trassa.FirstOrDefault(i => i.Time.Equals(time));				// Поиск данных для текущего времени
+					var current_data_la = trassa.FirstOrDefault(i => i.Time.Equals(time));						// Поиск данных для текущего времени
 					if (current_data_la is null) break;															// Если такого времени в расчетах нет, то выходим из цикла
 					var p_iri = new GeocentrCoord()																// Геоцентрические координаты ИРИ
 					{	
@@ -72,13 +72,13 @@ namespace DataCalc
 						Y = R*Cos(current_data_la.Fi)*Sin(current_data_la.Lambda),
 						Z = R*Sin(current_data_la.Fi)
 					};
-					var D = 1.15 * Math.Sqrt(Math.Pow(R+current_data_la.Height, 2) - R*R);				// Дальность радиогаризонта
+					var D = 1.15 * Math.Sqrt(Math.Pow(R+current_data_la.Height, 2) - R*R);						// Дальность радиогаризонта
 					//TODO: Добавить проверку на нахождение в пределах радиовидимости ЛА
-					var p_la_iri = p_iri - p_la;													// Геоцентрические координаты вектора, направленного от ЛА к ИРИ
-					var r_la_iri = GeocentrCoord.Abs(p_la_iri);											// Расстояние между ЛА и ИРИ
-					var c = (p_la_iri * current_data_la.v) / r_la_iri;									// Косинус угла пеленга
+					var p_la_iri = p_iri - p_la;																// Геоцентрические координаты вектора, направленного от ЛА к ИРИ
+					var r_la_iri = GeocentrCoord.Abs(p_la_iri);													// Расстояние между ЛА и ИРИ
+					var c = (p_la_iri * current_data_la.v) / r_la_iri;											// Косинус угла пеленга
 					if (is_ran.charact.BMin > c || is_ran.charact.BMax < c) break;								// Если угол пеленга не попадает в диапазон - выход из цикла
-					var delta_la_iri =																	// Борт приема сигнала TODO: убрать нули - уберу после отладки
+					var delta_la_iri =																			// Борт приема сигнала TODO: убрать нули - уберу после отладки
 						p_la_iri.X * current_data_la.v.Y * 0 +
 						p_la_iri.Y * current_data_la.v.Z * 0 +
 						p_la_iri.Z * current_data_la.v.X * 1 -
@@ -92,6 +92,65 @@ namespace DataCalc
 				}
 			}
 		}
+		
+		
+		/// <summary>
+		/// Процедура формирования пакетов импульсов, излучаемых заданным источником и принимаемых на борту
+		/// ЛА, перемещающегося по заданной трассе
+		/// </summary>
+		/// <param name="charact_iri">Характеристика источника радиоизлучения</param>
+		/// <param name="characts_stream">Характеристика излучаемого потока сигналов</param>
+		/// <param name="charact_mov_la">Характеристика процесса перемещения летательного аппарата</param>
+		/// <param name="characts_ran">Параметры системы радиоэлектронного наблюдения, размещенной на борту ЛА</param>
+		/// <param name="catalog">Каталог типов РЭС</param>
+		public static void MakeStreamTest(
+			CharacteristicIRI charact_iri,
+			List<CharacteristicStream> characts_stream,
+			CharacteristicMovingLA charact_mov_la,
+			List<CharacteristicRAN> characts_ran, Catalog catalog)
+		{
+			//TODO: Для характеристик излучаемого потока сигналов сделать случаное значение для нулевых элементов
+			IEnumerable<(double start, double end, CharacteristicRAN charact)> cycle_ran = characts_ran			// Определение начал и концов Таблицы 2
+			   .Select
+				(
+					i =>
+					(
+						characts_ran.Take(characts_ran.IndexOf(i)).Sum(j => j.Duration),						// Начало подцикла
+						characts_ran.Take(characts_ran.IndexOf(i) + 1).Sum(j => j.Duration),					// Конец подцикла
+						i // Элемент подцикла Таблицы 2
+					)
+				);
+			/*double flight_end = MakeTrassa(charact_mov_la.Height, charact_mov_la.Speed, charact_mov_la.Time, charact_mov_la.Coords)
+			   .Last().Time; // Получаю время когда самолет долетит до конечной точки*/
+			double t;
+			double t1 = 0.0;
+			while (t1 < 861000)
+			{
+				var t2 = 0.0;
+				foreach (var stream in characts_stream)
+				{
+					double t3 = 0;
+					for (; t3 < stream.Duration; t3 += stream.Dt)
+					{
+						t = t1 + t2 + t3;
+						var is_ran = cycle_ran	 // Определение принадлежности к циклограмме работы системы РЭН
+						   .FirstOrDefault(
+								i => i.start * 1000 <= t // Умножаю на 1000 чтобы перевести секунды в милесекунды
+								     && i.end * 1000 > t
+								     && i.charact.MinSignal <= stream.F
+								     && i.charact.MaxSignal >= stream.F);
+						if (is_ran.Equals(default(ValueTuple<double, double, CharacteristicRAN>))) continue; // Не входит в циклограмму работы РЭН - выходим из цикла*/
+						Console.WriteLine($"{t/1000:0.000000000}");
+						break;
+					}
+					t2 += stream.Duration;
+				}
+				t1 += t2;
+			}
+				
+
+		}
+		
 
 		public static TrassalOutParam Trassal(TrassalInParam param)
 		{

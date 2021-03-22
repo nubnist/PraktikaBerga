@@ -103,12 +103,14 @@ namespace DataCalc
 		/// <param name="charact_mov_la">Характеристика процесса перемещения летательного аппарата</param>
 		/// <param name="characts_ran">Параметры системы радиоэлектронного наблюдения, размещенной на борту ЛА</param>
 		/// <param name="catalog">Каталог типов РЭС</param>
-		public static void MakeStreamTest(
+		public static string MakeStreamTest(
 			CharacteristicIRI charact_iri,
 			List<CharacteristicStream> characts_stream,
 			CharacteristicMovingLA charact_mov_la,
 			List<CharacteristicRAN> characts_ran, Catalog catalog)
 		{
+			var results = string.Empty; // Сюда будут сохранятся результаты
+			
 			//TODO: Для характеристик излучаемого потока сигналов сделать случаное значение для нулевых элементов
 			IEnumerable<(double start, double end, CharacteristicRAN charact)> cycle_ran = characts_ran			// Определение начал и концов Таблицы 2
 			   .Select
@@ -119,36 +121,44 @@ namespace DataCalc
 						characts_ran.Take(characts_ran.IndexOf(i) + 1).Sum(j => j.Duration),					// Конец подцикла
 						i // Элемент подцикла Таблицы 2
 					)
-				);
-			/*double flight_end = MakeTrassa(charact_mov_la.Height, charact_mov_la.Speed, charact_mov_la.Time, charact_mov_la.Coords)
-			   .Last().Time; // Получаю время когда самолет долетит до конечной точки*/
-			double t;
-			double t1 = 0.0;
-			while (t1 < 861000)
+				).ToList();
+			//-----MakeTrassa(charact_mov_la.Height, charact_mov_la.Speed, charact_mov_la.Time, charact_mov_la.Coords).Last().Time; // Получаю время когда самолет долетит до конечной точки
+			var flight_end = 100000; // Конец приема, пока задал его в ручную
+			var t1 = 0.0;
+			while (t1 < flight_end)
 			{
 				var t2 = 0.0;
 				foreach (var stream in characts_stream)
 				{
-					double t3 = 0;
-					for (; t3 < stream.Duration; t3 += stream.Dt)
+					var packages_counter = 0;
+					for (var t3 = 0.0; t3 < stream.Duration; t3 += stream.Dt)
 					{
-						t = t1 + t2 + t3;
-						var is_ran = cycle_ran	 // Определение принадлежности к циклограмме работы системы РЭН
+						#region Подгонка под таблицу 2
+						var t = t1 + t2 + t3; // Время, кудет использоваться для синхронизации с таблицей 2
+						var is_ran = cycle_ran	 // Определение принадлежности к циклограмме работы системы РЭН по времени
+						   .FirstOrDefault(
+								i => i.start * 1000 <= t // Умножаю на 1000 чтобы перевести секунды в милесекунды
+								     && i.end * 1000 > t);
+						if (is_ran.Equals(default(ValueTuple<double, double, CharacteristicRAN>)))
+							t = t % (cycle_ran.Last().end * 1000);
+						#endregion
+						
+						is_ran = cycle_ran	 // Определение принадлежности к циклограмме работы системы РЭН
 						   .FirstOrDefault(
 								i => i.start * 1000 <= t // Умножаю на 1000 чтобы перевести секунды в милесекунды
 								     && i.end * 1000 > t
 								     && i.charact.MinSignal <= stream.F
 								     && i.charact.MaxSignal >= stream.F);
-						if (is_ran.Equals(default(ValueTuple<double, double, CharacteristicRAN>))) continue; // Не входит в циклограмму работы РЭН - выходим из цикла*/
-						Console.WriteLine($"{t/1000:0.000000000}");
-						break;
+						if (is_ran.Equals(default(ValueTuple<double, double, CharacteristicRAN>))) continue; // Если не подходит по характеристикам, прерываем цикл.
+						results += $"{(t1 + t2 + t3) / 1000.0:0.000000000}" + '\n';
+						if (++packages_counter == is_ran.charact.N) break; ; // Если достигнуто заданное число пакетов то выходим из перебора импульсов
 					}
 					t2 += stream.Duration;
 				}
 				t1 += t2;
 			}
-				
 
+			return results;
 		}
 		
 

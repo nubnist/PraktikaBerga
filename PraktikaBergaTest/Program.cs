@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Channels;
 using DataCalc;
 
@@ -10,23 +11,38 @@ namespace PraktikaBerga
     {
         static void Main(string[] args)
         {
+            
             var stream = new List<CharacteristicStream>()
             {
-                new() {F = 1000, Dt = 1.8, Duration = 100},
-                new() {F = 1200, Dt = 1.5, Duration = 100},
-                new() {F = 1000, Dt = 1.0, Duration = 100}
+                new() {F = 1000, Tau = 1.2, Dt = 1.8, Duration = 100},
+                new() {F = 1200, Tau = 1.2, Dt = 1.5, Duration = 100},
+                new() {F = 1000, Tau = 1.2, Dt = 1.0, Duration = 100}
             };
             var ran = new List<CharacteristicRAN>()
             {
-                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 500, MaxSignal = 1010, N = 6},
-                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 990, MaxSignal = 2010, N = 6},
-                new(){Board = CharacteristicRAN.Boards.L, Duration = 4, MinSignal = 1990, MaxSignal = 4000, N = 6},
-                new(){Board = CharacteristicRAN.Boards.L, Duration = 4, MinSignal = 590, MaxSignal = 1010, N = 6},
-                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 990, MaxSignal = 2010, N = 6},
-                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 1990, MaxSignal = 4000, N = 6}
+                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 500, MaxSignal = 1010, N = 1},
+                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 990, MaxSignal = 2010, N = 1},
+                new(){Board = CharacteristicRAN.Boards.L, Duration = 4, MinSignal = 1990, MaxSignal = 4000, N = 1},
+                new(){Board = CharacteristicRAN.Boards.L, Duration = 4, MinSignal = 590, MaxSignal = 1010, N = 1},
+                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 990, MaxSignal = 2010, N = 1},
+                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 1990, MaxSignal = 4000, N = 1}
             };
-            var res = Calc.MakeStreamTest(new CharacteristicIRI(), stream, new CharacteristicMovingLA(), ran, new Catalog());
-            
+            var iri = new CharacteristicIRI()
+            {
+              Coord  = new GeographCoord(){Fi = 59.3, Lambda = 40.3}
+            };
+            var la = new CharacteristicMovingLA()
+            {
+                Coords = new List<GeographCoord>()
+                {
+                    new GeographCoord(){Fi = 59, Lambda = 39}, 
+                    new GeographCoord(){Fi = 60, Lambda = 40}
+                },
+                Height = 10,
+                Speed = 200,
+                Time = 1
+            };
+            var res = Calc.MakeStream(iri, stream, la, ran, new Catalog());
             File.WriteAllText("potok.txt", res);
         }
     }

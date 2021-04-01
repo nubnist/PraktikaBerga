@@ -176,6 +176,7 @@ public class Catalog
         public GeographCoord End { get; set; }
         
         public GeocentrCoord v { get; set; }
+        public GeocentrCoord p { get; set; }
 
         public override string ToString()
         {

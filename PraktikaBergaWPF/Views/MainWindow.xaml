@@ -143,9 +143,6 @@
             
             <!--Данные измерений-->
             <materialDesign:Card Grid.Column="1" Padding="32" Margin="16">
-                <materialDesign:Card.Effect>
-                    <BlurEffect Radius="8"></BlurEffect>
-                </materialDesign:Card.Effect>
                 <DockPanel>
                     <TextBlock
                         Style="{StaticResource MaterialDesignHeadline6TextBlock}"

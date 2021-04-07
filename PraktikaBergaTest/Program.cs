@@ -20,12 +20,12 @@ namespace PraktikaBerga
             };
             var ran = new List<CharacteristicRAN>()
             {
-                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 500, MaxSignal = 1010, N = 1},
-                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 990, MaxSignal = 2010, N = 1},
-                new(){Board = CharacteristicRAN.Boards.L, Duration = 4, MinSignal = 1990, MaxSignal = 4000, N = 1},
-                new(){Board = CharacteristicRAN.Boards.L, Duration = 4, MinSignal = 590, MaxSignal = 1010, N = 1},
-                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 990, MaxSignal = 2010, N = 1},
-                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 1990, MaxSignal = 4000, N = 1}
+                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 500, MaxSignal = 1010, N = 5},
+                new(){Board = CharacteristicRAN.Boards.L, Duration = 3, MinSignal = 990, MaxSignal = 2010, N = 5},
+                new(){Board = CharacteristicRAN.Boards.L, Duration = 4, MinSignal = 1990, MaxSignal = 4000, N = 5},
+                new(){Board = CharacteristicRAN.Boards.R, Duration = 4, MinSignal = 590, MaxSignal = 1010, N = 5},
+                new(){Board = CharacteristicRAN.Boards.R, Duration = 3, MinSignal = 990, MaxSignal = 2010, N = 5},
+                new(){Board = CharacteristicRAN.Boards.R, Duration = 3, MinSignal = 1990, MaxSignal = 4000, N = 5}
             };
             var iri = new CharacteristicIRI()
             {
@@ -36,7 +36,10 @@ namespace PraktikaBerga
                 Coords = new List<GeographCoord>()
                 {
                     new GeographCoord(){Fi = 59, Lambda = 39}, 
-                    new GeographCoord(){Fi = 60, Lambda = 40}
+                    new GeographCoord(){Fi = 59, Lambda = 40},
+                    new GeographCoord(){Fi = 60, Lambda = 39},
+                    new GeographCoord(){Fi = 60, Lambda = 40},
+                    new GeographCoord(){Fi = 59, Lambda = 39}
                 },
                 Height = 10,
                 Speed = 200,

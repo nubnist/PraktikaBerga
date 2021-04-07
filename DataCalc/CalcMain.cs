@@ -14,6 +14,14 @@ namespace DataCalc
 {
 	public static partial class Calc
 	{
+		private static double RandNormTwoNum(double one, double two)
+		{
+			var dev = Math.Abs(one - two);
+			var randNum = Math.Abs(RandomNorm(0, dev));
+			var min = Math.Min(one, two);
+			return min + randNum;
+		}
+		
 		/// <summary>
 		/// Процедура формирования пакетов импульсов, излучаемых заданным источником и принимаемых на борту
 		/// ЛА, перемещающегося по заданной трассе
@@ -31,8 +39,18 @@ namespace DataCalc
 			Catalog catalog)
 		{
 			var results = string.Empty; // Сюда будут сохранятся результаты
+			
+			#region Расчет случайных величин при нулевых характеристиках
 
-			//TODO: Для характеристик излучаемого потока сигналов сделать случаное значение для нулевых элементов
+			foreach (var stream in characts_stream)
+			{
+				if (stream.F == 0) stream.F = RandNormTwoNum(catalog.FMin, catalog.FMax);
+				if (stream.Tau == 0) stream.Tau = RandNormTwoNum(catalog.TauMin, catalog.TauMax);
+				if (stream.Dt == 0) stream.Dt = RandNormTwoNum(catalog.DtMin, catalog.DtMax);
+			}
+
+			#endregion
+			
 			
 			IEnumerable<(double start, double end, CharacteristicRAN charact)> cycle_ran = characts_ran // Определение начал и концов Таблицы 2
 			   .Select
@@ -55,23 +73,26 @@ namespace DataCalc
 				foreach (var stream in characts_stream)
 				{
 					var count = 0;
+					var firstPackageTime = 0.0;
+					(double start, double end, CharacteristicRAN charact) previous_ran = default;
+					var package = new List<(double f, double tau, double c, CharacteristicRAN.Boards board)>();
 					for (var t3 = 0.0; t3 < stream.Duration; t3 += stream.Dt)
 					{
-						if (++count > 6) break;
+						if (++count > 10) continue;
 						
 						if (t1 + t2 + t3 > flight_end) break;
 
 						
 						#region Подгонка под таблицу 2
 
-						var t = t1 + t2 + t3; // Время, кудет использоваться для синхронизации с таблицей 2
+						var t = t1 + t2 + t3; // Время, будет использоваться для синхронизации с таблицей 2
 						var is_ran = cycle_ran // Определение принадлежности к циклограмме работы системы РЭН по времени
 						   .FirstOrDefault(
 								i => i.start * 1000 <= t // Умножаю на 1000 чтобы перевести секунды в милесекунды
 								     && i.end * 1000 > t);
 						if (is_ran.Equals(default(ValueTuple<double, double, CharacteristicRAN>)))
 							t = t % (cycle_ran.Last().end * 1000);
-
+						
 						#endregion
 
 						
@@ -88,7 +109,7 @@ namespace DataCalc
 							continue; // Если не подходит по характеристикам переходим на следующую итерацию.
 						
 						#endregion
-
+						
 						
 						#region Обращение к процедуре MakeTrassa
 
@@ -101,9 +122,18 @@ namespace DataCalc
 						}
 						else
 						{
-							trassa = MakeTrassa(
-								charact_mov_la.Height, charact_mov_la.Speed, (t1 + t2 + t3) / 1000,
-								charact_mov_la.Coords); // Расчет данных о полете ЛА по ломанной с шагом dt
+							try
+							{
+								trassa = MakeTrassa(
+									charact_mov_la.Height, charact_mov_la.Speed, (t1 + t2 + t3) / 1000,
+									charact_mov_la.Coords); // Расчет данных о полете ЛА по ломанной с шагом dt
+							}
+							catch (Exception e)
+							{
+								Console.WriteLine(e);
+								throw;
+							}
+							
 						}
 						var trassa_point = trassa.FirstOrDefault(i =>($"{(i.Time * 1000):0.000000000}" == $"{(t1 + t2 + t3):0.000000000}")) // Определение данных ЛА в текущий момент
 							?? throw new Exception("Такой точки нету"); 
@@ -135,8 +165,7 @@ namespace DataCalc
 
 						
 						#region Проверка борта приема - Проверка 3
-
-						if (t1 + t2 + t3 > 10000) Console.WriteLine();
+						
 						double[,] matrix =
 						{
 							{p_la_iri.X, p_la_iri.Y, p_la_iri.Z},
@@ -145,7 +174,7 @@ namespace DataCalc
 						};
 						var delta_la_iri = Determ(matrix);
 						var board = delta_la_iri < 0 ? CharacteristicRAN.Boards.L : CharacteristicRAN.Boards.R; // Определение борта
-						if (is_ran.charact.Board == board) // Если знак не соответствует бортам - следующая итерация
+						if (is_ran.charact.Board != board) // Если знак не соответствует бортам - следующая итерация
 							continue;
 
 						#endregion
@@ -157,29 +186,58 @@ namespace DataCalc
 						//if (is_ran.charact.BMin > c || is_ran.charact.BMax < c) continue; // Если угол пеленга не попадает в диапазон - выход из цикла
 
 						#endregion
-
-
+						
+						/*
 						#region Проверка на уже оформленные пакеты - Проверка 5
 
-						//TODO: Необходимо реализовать пятую проверку - сравнение с аналогичной парой, соответствующей последнему из "оформленных пакетов"
+						if (previous_ran == is_ran && t3 + stream.Dt < stream.Duration)
+						{
+							if (++count > is_ran.charact.N)
+								continue;
+							package.Add((f: stream.F, tau: stream.Tau, c: c, board: board));
+						}
+						else
+						{
+							if (package.Any())
+							{
+								(double f, double tau, double c) average;
+								average.f = package.Average(i => i.f);
+								average.tau = package.Average(i => i.tau);
+								average.c = package.Average(i => i.c);
+
+								var res = $"{firstPackageTime}\t{average.f}\t{average.tau}\t{average.c}\t{charact_iri?.NType}\n";
+								results += res;
+								Console.WriteLine(res);
+								
+								count = 0;
+								previous_ran = is_ran;
+								package.Clear();
+								firstPackageTime = t1 + t2 + t3;
+							}
+							
+							package.Add((f: stream.F, tau: stream.Tau, c: c, board: board));
+						}
 
 						#endregion
-
-
+						*/
+						
 						#region Формирование вывода в файл
 
 						var current_data = $"{(t1 + t2 + t3) / 1000.0:0.000000000}\t{trassa_point.Fi:0.00000}\t{trassa_point.Lambda:0.00000}"
 						                   + $"\t{trassa_point.Height / 1000:0.000}\t{trassa_point.Psi:0.00000}\t{trassa_point.Tangaz:0.00000}\t{trassa_point.Kren:0.00000}\t"
-						                   + $"{board}\t{c:0.00000}\t{stream.F:0.0}\t{stream.Tau:0.000}\tБез каталога\n";
+						                   + $"{board}\t{c:0.00000}\t{stream.F:0.0}\t{stream.Tau:0.000}\tABC\n";
 						results += current_data;
 						Console.Write(current_data);
 
 						#endregion
+						
+						
 					}
-
+					
+					package.Clear();
 					t2 += stream.Duration;
 				}
-
+				
 				t1 += t2;
 			}
 
@@ -256,14 +314,35 @@ namespace DataCalc
 			// Проверка на выход из диапазона
 			if
 			(
-				Math.Min(param.Start.Fi, param.End.Fi) > Math.Round(f, 6)
-				|| Math.Round(f, 6) > Math.Max(param.Start.Fi, param.End.Fi)
-				|| Math.Min(param.Start.Lambda, param.End.Lambda) > Math.Round(lambda, 6)
-				|| Math.Round(lambda, 6) > Math.Max(param.Start.Lambda, param.End.Lambda)
+				(Math.Min(param.Start.Fi, param.End.Fi) > Math.Round(f, 6)
+				 || Math.Round(f, 6) > Math.Max(param.Start.Fi, param.End.Fi)
+				 || Math.Min(param.Start.Lambda, param.End.Lambda) > Math.Round(lambda, 6)
+				 || Math.Round(lambda, 6) > Math.Max(param.Start.Lambda, param.End.Lambda))
+				&& Math.Abs(param.Start.Fi - param.End.Fi) >= 0.000000001 && Math.Abs(param.Start.Lambda - param.End.Lambda) >= 0.000000001
 			)
 			{
 				return null;
 			}
+			if
+			(
+				(Math.Min(param.Start.Lambda, param.End.Lambda) > Math.Round(lambda, 6)
+				 || Math.Round(lambda, 6) > Math.Max(param.Start.Lambda, param.End.Lambda))
+				&& Math.Abs(param.Start.Fi - param.End.Fi) < 0.000000001
+			)
+			{
+				return null;
+			}
+			if
+			(
+				(Math.Min(param.Start.Fi, param.End.Fi) > Math.Round(f, 6)
+				 || Math.Round(f, 6) > Math.Max(param.Start.Fi, param.End.Fi)
+				 || Math.Min(param.Start.Lambda, param.End.Lambda) > Math.Round(lambda, 6))
+				&& Math.Abs(param.Start.Lambda - param.End.Lambda) < 0.000000001
+			)
+			{
+				return null;
+			}
+			
 
 			// Вектор скорости ЛА в момент t
 			var p_speed =
@@ -284,7 +363,7 @@ namespace DataCalc
 
 			// Курсовой угол:
 			var psi = Arccos(v * m);
-			var check = param.End.Lambda - param.Start.Lambda;
+			var check = Math.Abs(param.End.Lambda - param.Start.Lambda);
 			if (0 < check && check < 180 || check < -180)
 				psi = Math.Abs(psi);
 			else
@@ -357,7 +436,7 @@ namespace DataCalc
 					});
 			}
 
-			StreamWriter f = new StreamWriter("data.txt");
+			//StreamWriter f = new StreamWriter("data.txt");
 			tm = 0;
 			IList<Param> result = new List<Param>();
 			foreach (var p in pl)
@@ -367,6 +446,10 @@ namespace DataCalc
 					Param r;
 					var tst = pl.GetRange(0, pl.IndexOf(p)).Sum(i => i.Time);
 					var res = Trassal(new() {h = p.Height, t = tm - tst, Start = p.Start, End = p.End, V = speed});
+					if (res is null)
+					{
+						break;
+					}
 					(double fi, double lambda) cr = CoordRand(res.CurrentGeographCoord.Fi, res.CurrentGeographCoord.Lambda, location_sigma);
 					r = new Param()
 					{
@@ -374,7 +457,7 @@ namespace DataCalc
 						Height = height, Psi = RandomNorm(res.Psi, psi_sigma), Tangaz = 0, Kren = 0, v = res.v, p = res.p
 					};
 					result.Add(r);
-					f.WriteLine(r);
+					//f.WriteLine(r);
 					tm += time;
 					if (tm <= pl.GetRange(0, pl.IndexOf(p) + 1).Sum(i => i.Time)) continue;
 					if (p == pl.Last())
@@ -388,15 +471,15 @@ namespace DataCalc
 							Height = height, Psi = RandomNorm(res.Psi, psi_sigma), Tangaz = 0, Kren = 0, v = res.v, p = res.p
 						};
 						result.Add(r);
-						f.WriteLine(r);
-						f.WriteLine($"{t:0.000000000}");
+						//f.WriteLine(r);
+						//f.WriteLine($"{t:0.000000000}");
 					}
 
 					break;
 				}
 			}
 
-			f.Close();
+			//f.Close();
 
 			return result;
 		}

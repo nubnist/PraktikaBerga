@@ -224,7 +224,7 @@ namespace DataCalc
 						#region Формирование вывода в файл
 
 						var current_data = $"{(t1 + t2 + t3) / 1000.0:0.000000000}\t{trassa_point.Fi:0.00000}\t{trassa_point.Lambda:0.00000}"
-						                   + $"\t{trassa_point.Height / 1000:0.000}\t{trassa_point.Psi:0.00000}\t{trassa_point.Tangaz:0.00000}\t{trassa_point.Kren:0.00000}\t"
+						                   + $"\t{trassa_point.Height / 1000:0.000}\t{(trassa_point.Psi < 0 ? 360 + trassa_point.Psi : trassa_point.Psi):0.00000}\t{trassa_point.Tangaz:0.00000}\t{trassa_point.Kren:0.00000}\t"
 						                   + $"{board}\t{c:0.00000}\t{stream.F:0.0}\t{stream.Tau:0.000}\tABC\n";
 						results += current_data;
 						Console.Write(current_data);
@@ -363,7 +363,7 @@ namespace DataCalc
 
 			// Курсовой угол:
 			var psi = Arccos(v * m);
-			var check = Math.Abs(param.End.Lambda - param.Start.Lambda);
+			var check = param.End.Lambda - param.Start.Lambda;
 			if (0 < check && check < 180 || check < -180)
 				psi = Math.Abs(psi);
 			else

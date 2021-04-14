@@ -6,6 +6,38 @@ using System.Globalization;
 namespace DataCalc
 {
 
+    public class Package
+    {
+        /// <summary>
+        /// Время
+        /// </summary>
+        public double Time { get; set; }
+        /// <summary>
+        /// Несущая частота
+        /// </summary>
+        public double F { get; set; }
+        /// <summary>
+        /// Длительность сигнала
+        /// </summary>
+        public double Tau { get; set; }
+        /// <summary>
+        /// Косинус угла пелленга
+        /// </summary>
+        public double С { get; set; }
+        /// <summary>
+        /// Борт
+        /// </summary>
+        public CharacteristicRAN.Boards Board { get; set; }
+        /// <summary>
+        /// Код типа РЭС
+        /// </summary>
+        public string Type { get; set; }
+        /// <summary>
+        /// Условный номер типа
+        /// </summary>
+        public int NType { get; set; }
+    }
+
 #region Структуры данных для процедуры MakeStream
 
  /// <summary>

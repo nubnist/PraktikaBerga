@@ -67,6 +67,7 @@ namespace DataCalc
 					charact_mov_la.Height, charact_mov_la.Speed, charact_mov_la.Time, charact_mov_la.Coords).Last()
 			   .Time * 1000; // Получаю время когда самолет долетит до конечной точки
 			var t1 = 0.0;
+			var packages = new List<List<Package>>();
 			while (t1 <= flight_end )
 			{
 				var t2 = 0.0;
@@ -74,15 +75,14 @@ namespace DataCalc
 				{
 					var count = 0;
 					var firstPackageTime = 0.0;
-					(double start, double end, CharacteristicRAN charact) previous_ran = default;
-					var package = new List<(double f, double tau, double c, CharacteristicRAN.Boards board)>();
+					CharacteristicRAN previousRan = null;
+					var package = new List<Package>();
+					
 					for (var t3 = 0.0; t3 < stream.Duration; t3 += stream.Dt)
 					{
-						if (++count > 10) continue;
-						
 						if (t1 + t2 + t3 > flight_end) break;
-
 						
+
 						#region Подгонка под таблицу 2
 
 						var t = t1 + t2 + t3; // Время, будет использоваться для синхронизации с таблицей 2
@@ -187,40 +187,57 @@ namespace DataCalc
 
 						#endregion
 						
-						/*
+						
 						#region Проверка на уже оформленные пакеты - Проверка 5
 
-						if (previous_ran == is_ran && t3 + stream.Dt < stream.Duration)
+						
+						if (is_ran.charact == previousRan)
 						{
-							if (++count > is_ran.charact.N)
-								continue;
-							package.Add((f: stream.F, tau: stream.Tau, c: c, board: board));
+							if (count <= is_ran.charact.N)
+							{
+								count++;
+								var pack = new Package()
+								{
+									Board = board,
+									F = trassa_point.Fi,
+									Tau = stream.Tau,
+									Time = (t1 + t2 + t3) / 1000,
+									С = c
+								};
+								package.Add(pack);
+								
+								var current_data = $"{(t1 + t2 + t3) / 1000.0:0.000000000}\t{trassa_point.Fi:0.00000}\t{trassa_point.Lambda:0.00000}"
+								                   + $"\t{trassa_point.Height / 1000:0.000}\t{(trassa_point.Psi < 0 ? 360 + trassa_point.Psi : trassa_point.Psi):0.00000}\t{trassa_point.Tangaz:0.00000}\t{trassa_point.Kren:0.00000}\t"
+								                   + $"{board}\t{c:0.00000}\t{stream.F:0.0}\t{stream.Tau:0.000}\tABC\n";
+								results += current_data;
+								Console.Write(current_data);
+							}
+							else
+							{
+								previousRan = is_ran.charact;
+								packages.Add(package);
+								break;
+							}
 						}
 						else
 						{
+							count = 1;
 							if (package.Any())
 							{
-								(double f, double tau, double c) average;
-								average.f = package.Average(i => i.f);
-								average.tau = package.Average(i => i.tau);
-								average.c = package.Average(i => i.c);
-
-								var res = $"{firstPackageTime}\t{average.f}\t{average.tau}\t{average.c}\t{charact_iri?.NType}\n";
-								results += res;
-								Console.WriteLine(res);
-								
-								count = 0;
-								previous_ran = is_ran;
+								packages.Add(package);
 								package.Clear();
-								firstPackageTime = t1 + t2 + t3;
 							}
-							
-							package.Add((f: stream.F, tau: stream.Tau, c: c, board: board));
+							var current_data = $"{(t1 + t2 + t3) / 1000.0:0.000000000}\t{trassa_point.Fi:0.00000}\t{trassa_point.Lambda:0.00000}"
+							                   + $"\t{trassa_point.Height / 1000:0.000}\t{(trassa_point.Psi < 0 ? 360 + trassa_point.Psi : trassa_point.Psi):0.00000}\t{trassa_point.Tangaz:0.00000}\t{trassa_point.Kren:0.00000}\t"
+							                   + $"{board}\t{c:0.00000}\t{stream.F:0.0}\t{stream.Tau:0.000}\tABC\n";
+							results += current_data;
+							Console.Write(current_data);
 						}
 
 						#endregion
-						*/
 						
+
+						/*
 						#region Формирование вывода в файл
 
 						var current_data = $"{(t1 + t2 + t3) / 1000.0:0.000000000}\t{trassa_point.Fi:0.00000}\t{trassa_point.Lambda:0.00000}"
@@ -230,11 +247,11 @@ namespace DataCalc
 						Console.Write(current_data);
 
 						#endregion
-						
-						
+						*/
+
+						previousRan = is_ran.charact;
 					}
-					
-					package.Clear();
+					Console.WriteLine("---------------------------");
 					t2 += stream.Duration;
 				}
 				

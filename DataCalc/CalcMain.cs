@@ -31,7 +31,7 @@ namespace DataCalc
 		/// <param name="charact_mov_la">Характеристика процесса перемещения летательного аппарата</param>
 		/// <param name="characts_ran">Параметры системы радиоэлектронного наблюдения, размещенной на борту ЛА</param>
 		/// <param name="catalog">Каталог типов РЭС</param>
-		public static string MakeStream(
+		public static List<List<Package>> MakeStream(
 			CharacteristicIRI charact_iri,
 			List<CharacteristicStream> characts_stream,
 			CharacteristicMovingLA charact_mov_la,
@@ -258,7 +258,7 @@ namespace DataCalc
 				t1 += t2;
 			}
 
-			return results;
+			return packages;
 		}
 
 		/// <summary>

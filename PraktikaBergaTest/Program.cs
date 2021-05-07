@@ -46,7 +46,7 @@ namespace PraktikaBerga
                 Time = 1
             };
             var res = Calc.MakeStream(iri, stream, la, ran, new Catalog());
-            File.WriteAllText("potok.txt", res);
+            //File.WriteAllText("potok.txt", res);
         }
     }
 }

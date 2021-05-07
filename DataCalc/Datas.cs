@@ -13,6 +13,38 @@ namespace DataCalc
         /// </summary>
         public double Time { get; set; }
         /// <summary>
+        /// Широта
+        /// </summary>
+        public double Fi { get; set; }
+        /// <summary>
+        /// Долгота
+        /// </summary>
+        public double Lambda { get; set; }
+        /// <summary>
+        /// Высота
+        /// </summary>
+        public double Height { get; set; }
+        /// <summary>
+        /// Курс
+        /// </summary>
+        public double Psi { get; set; }
+        /// <summary>
+        /// Тангаж
+        /// </summary>
+        public double Tangaz { get; set; }
+        /// <summary>
+        /// Крен
+        /// </summary>
+        public double Kren { get; set; }
+        /// <summary>
+        /// Борт
+        /// </summary>
+        public CharacteristicRAN.Boards Board { get; set; }
+        /// <summary>
+        /// Косинус угла пелленга
+        /// </summary>
+        public double С { get; set; }
+        /// <summary>
         /// Несущая частота
         /// </summary>
         public double F { get; set; }
@@ -21,21 +53,13 @@ namespace DataCalc
         /// </summary>
         public double Tau { get; set; }
         /// <summary>
-        /// Косинус угла пелленга
-        /// </summary>
-        public double С { get; set; }
-        /// <summary>
-        /// Борт
-        /// </summary>
-        public CharacteristicRAN.Boards Board { get; set; }
-        /// <summary>
         /// Код типа РЭС
         /// </summary>
         public string Type { get; set; }
         /// <summary>
-        /// Условный номер типа
+        /// Порядковый номер в списке излучающих ИРИ
         /// </summary>
-        public int NType { get; set; }
+        public int Number { get; set; }
     }
 
 #region Структуры данных для процедуры MakeStream

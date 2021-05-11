@@ -329,6 +329,90 @@ namespace DataCalc
             return buf;
         }
 
+        
+        /// <summary>
+        /// Разчет массивов данных разных ИРИ с заданными отклонениями
+        /// </summary>
+        /// <param name="ran_data">Трассы летательного аппаратат для различных ИРИ</param>
+        /// <param name="time_sigma">Погрешность времени</param>
+        /// <param name="coord_sigma">Погрешность координат</param>
+        /// <param name="height_sigma">Погрешность высоты</param>
+        /// <param name="psi_sigma">Погрешность курсового угла</param>
+        /// <param name="c_sigma">Погрешность косинуса угла пеленга</param>
+        /// <param name="f_sigma">Погрешность несущей частоты</param>
+        /// <param name="tau_sigma">Погрешность длительности сигнала</param>
+        /// <returns>
+        /// Массив1 - все импульсы пакетов без погрешностей,
+        /// Массив2 - массив усредненых пакетов без погрешности,
+        /// Массив3 - все импульсы пакетов с погрешностью,
+        /// Массив4 - массив усредненых пакетов с погрешностью
+        /// </returns>
+        public static (List<Package> arr1, 
+            List<Package> arr2, 
+            List<Package> arr3, 
+            List<Package> arr4) RanUnion(List<(List<Package> all_data, List<List<Package>> packages)> ran_data, 
+            double time_sigma, double fi_sigma, double coord_sigma, double height_sigma, double psi_sigma,
+            double c_sigma, double f_sigma, double tau_sigma)
+        {
+            var arr1 = new List<Package>(); // Массив всех импульсов пакетов без погрешности
+            var arr2 = new List<Package>(); // Массив всех усредненных пакетов без погрешности
+            foreach (var data in ran_data) // Заполнение массива 1 импульсами различных ИРИ
+            {
+                arr1.AddRange(data.packages.SelectMany(i => i));
+                arr2.AddRange(data.packages.Select(i => new Package()
+                {
+                    Time = i.First().Time, Fi = i.Average(j => j.Fi),
+                    Lambda = i.Average(j => j.Lambda), Height = i.First().Height,
+                    Psi = i.Average(j => j.Psi), 
+                    Tangaz = i.Average(j => j.Tangaz),
+                    Kren = i.Average(j => j.Kren),
+                    Board = i.First().Board, С = i.Average(j => j.С),
+                    F = i.Average(j => j.F),
+                    Tau = i.Average(j => j.Tau),
+                    Type = i.First().Type,
+                    Number = i.First().Number
+                }));
+            }
+            var arr3 = // Массив всех усредненных импульсов пакетов c погрешностью
+                IriDataSigma(arr1, time_sigma, coord_sigma, 
+                height_sigma, psi_sigma, c_sigma, 
+                f_sigma, tau_sigma); 
+            var arr4 = // Массив всех усредненных пакетов c погрешностью
+                IriDataSigma(arr2, time_sigma, coord_sigma, 
+                height_sigma, psi_sigma, c_sigma, 
+                f_sigma, tau_sigma);
+            
+            // Сортировка массивов по времени
+            arr1 = arr1.OrderBy(i => i.Time).ToList(); // Сортировка по времени
+            arr2 = arr2.OrderBy(i => i.Time).ToList(); // Сортировка по времени
+            arr3 = arr3.OrderBy(i => i.Time).ToList(); // Сортировка по времени
+            arr4 = arr4.OrderBy(i => i.Time).ToList(); // Сортировка по времени
+            
+
+            return default;
+        }
+        private static IEnumerable<Package> IriDataSigma(List<Package> packages, double time_sigma, double coord_sigma, double height_sigma, double psi_sigma, double c_sigma, double f_sigma, double tau_sigma)
+        {
+
+            return packages                 // Массив всех импульсов пакетов c погрешностью
+               .Select(i => new Package()
+                {
+                    Time = Math.Abs((double)RandomNorm(i.Time, time_sigma)), 
+                    Fi = CoordRand(i.Fi, i.Lambda, coord_sigma).Fi,
+                    Lambda = CoordRand(i.Fi, i.Lambda, coord_sigma).Lambda, 
+                    Height = (double)RandomNorm(i.Height, height_sigma),
+                    Psi = (double)RandomNorm(i.Psi, psi_sigma), 
+                    Tangaz = i.Tangaz,
+                    Kren = i.Kren,
+                    Board = i.Board, 
+                    С = (double)RandomNorm(i.С, c_sigma),
+                    F = (double)RandomNorm(i.F, f_sigma),
+                    Tau = (double)RandomNorm(i.Tau, tau_sigma),
+                    Type = i.Type,
+                    Number = i.Number
+                });
+        }
+
         public static TrassalOutParam Trassal(TrassalInParam param)
         {
             var e1 = ToGeocetnricCoord(param.Start);

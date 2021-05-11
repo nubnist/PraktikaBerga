@@ -36,7 +36,7 @@ namespace DataCalc
         /// <param name="lambda">Долгота</param>
         /// <param name="sigma">Среднее отклонение.</param>
         /// <returns></returns>
-        private static (double, double) CoordRand(double fi, double lambda, double sigma)
+        private static (double Fi, double Lambda) CoordRand(double fi, double lambda, double sigma)
         {
             double e = RandomNorm(0, sigma);
             var rand = new Random();

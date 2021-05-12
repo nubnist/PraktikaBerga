@@ -20,9 +20,9 @@
     </Window.DataContext>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
             <!--Параметры трассы-->
@@ -30,8 +30,8 @@
                 <StackPanel Orientation="Vertical">
                     <TextBlock
                         Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                        Text="Параметры трассы"
-                        Margin="0 0 0 10" HorizontalAlignment="Center"/>
+                        Text="Параметры полета ЛА"
+                        Margin="0 0 0 10" HorizontalAlignment="Center" />
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBox
                             Text="{Binding Height}"
@@ -41,8 +41,7 @@
                             TextWrapping="Wrap"
                             MaxWidth="400"
                             Margin="15"
-                            materialDesign:HintAssist.Hint="Высота (км)"
-                        />
+                            materialDesign:HintAssist.Hint="Высота (км)" />
                         <TextBox
                             Text="{Binding Speed}"
                             Style="{StaticResource MaterialDesignFilledTextBox}"
@@ -52,15 +51,6 @@
                             MaxWidth="400"
                             Margin="15"
                             materialDesign:HintAssist.Hint="Скорость (м/сек)" />
-                        <TextBox
-                            Text="{Binding Time}"
-                            Style="{StaticResource MaterialDesignFilledTextBox}"
-                            VerticalAlignment="Top"
-                            AcceptsReturn="True"
-                            TextWrapping="Wrap"
-                            MaxWidth="400"
-                            Margin="15"
-                            materialDesign:HintAssist.Hint="Шаг по времени" />
                     </StackPanel>
                     <Button
                         Command="{Binding BuildModelCommand}"
@@ -73,16 +63,36 @@
                             Text="Построение модели" />
                     </Button>
                 </StackPanel>
+
             </materialDesign:Card>
-            
-            <!--Параметры нормального отклонения-->
+
+            <!--Узловые точки-->
+            <materialDesign:Card Padding="32" Margin="16">
+                <DockPanel>
+                    <TextBlock
+                        Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                        Text="Узловые точки полета ЛА"
+                        Margin="0 0 0 10"
+                        HorizontalAlignment="Center" DockPanel.Dock="Top" />
+
+                    <DataGrid ItemsSource="{Binding Coords}" HorizontalAlignment="Center" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Широта" Binding="{Binding Fi}" />
+                            <DataGridTextColumn Header="Долгота" Binding="{Binding Lambda}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                </DockPanel>
+            </materialDesign:Card>
+
+            <!--Ошибки измерений-->
             <materialDesign:Card Padding="32" Margin="16">
                 <StackPanel Orientation="Vertical">
                     <TextBlock
                         Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                         Text="Средние ошибки измерения параметров"
-                        Margin="0 0 0 10" HorizontalAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        Margin="0 0 0 10" HorizontalAlignment="Center" />
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBox
                             Text="{Binding TimeSigma}"
                             Style="{StaticResource MaterialDesignFilledTextBox}"
@@ -91,8 +101,7 @@
                             TextWrapping="Wrap"
                             MaxWidth="400"
                             Margin="15"
-                            materialDesign:HintAssist.Hint="Времени (с)"
-                        />
+                            materialDesign:HintAssist.Hint="Времени (с)" />
                         <TextBox
                             Text="{Binding PsiSigma}"
                             Style="{StaticResource MaterialDesignFilledTextBox}"
@@ -115,39 +124,100 @@
                 </StackPanel>
             </materialDesign:Card>
         </StackPanel>
-        
+
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            
-            <!--Узловые точки-->
-            <materialDesign:Card Grid.Column="0" Padding="32" Margin="16" >
+
+            <!--Данные ИРИ-->
+            <materialDesign:Card Grid.Column="0" Padding="32" Margin="16">
                 <DockPanel>
                     <TextBlock
                         Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                        Text="Узловые точки"
+                        Text="Данные ИРИ"
                         Margin="0 0 0 10"
-                        HorizontalAlignment="Center" DockPanel.Dock="Top"/>
-                    
-                    <DataGrid ItemsSource="{Binding Coords}" HorizontalAlignment="Center" AutoGenerateColumns="False">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Широта" Binding="{Binding Fi}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Долгота" Binding="{Binding Lambda}"></DataGridTextColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                    
+                        HorizontalAlignment="Center" DockPanel.Dock="Top" />
+
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center"> 
+                        <Button
+                            Command="{Binding AddIRICommand}"
+                            Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}"
+                            ToolTip="MaterialDesignFloatingActionMiniAccentButton">
+                            <materialDesign:PackIcon Kind="Add" />
+                        </Button>
+                        <Button Margin="5"
+                                Command="{Binding RemoveIRICommand}"
+                                Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}"
+                                ToolTip="MaterialDesignFloatingActionMiniAccentButton">
+                            <materialDesign:PackIcon Kind="Delete" />
+                        </Button>
+                        <Button Command="{Binding EditIRICommand}"
+                                Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}"
+                                ToolTip="MaterialDesignFloatingActionMiniAccentButton">
+                            <materialDesign:PackIcon Kind="Edit" />
+                        </Button>
+                    </StackPanel>
+                    <ListBox ItemsSource="{Binding Iris}" MinWidth="200" SelectedItem="{Binding SelectedIRI}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel MinWidth="200">
+                                    <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center"
+                                               Text="{Binding CharacteristicIri.NType}" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </DockPanel>
             </materialDesign:Card>
-            
+
+            <materialDesign:Card Grid.Column="1" Padding="32" Margin="16" 
+                                 Visibility="{Binding EditIriVisibility}" 
+                                 Width="{Binding EditIriHeight}">
+                <DockPanel Grid.Column="1" Margin="20">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                        <TextBox Margin="10"
+                                 Text="{Binding SelectedIRI.CharacteristicIri.NType}"
+                                 materialDesign:HintAssist.Hint="Условный номер ИРИ"
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 VerticalAlignment="Center" />
+
+                        <TextBox Margin="10"
+                                 Text="{Binding SelectedIRI.CharacteristicIri.Coord.Fi}"
+                                 materialDesign:HintAssist.Hint="Широта"
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 VerticalAlignment="Center" />
+
+                        <TextBox Margin="10"
+                                 Text="{Binding SelectedIRI.CharacteristicIri.Coord.Lambda}"
+                                 materialDesign:HintAssist.Hint="Долгота"
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <Button DockPanel.Dock="Bottom"
+                            Style="{StaticResource MaterialDesignRaisedAccentButton}"
+                            ToolTip="Resource name: MaterialDesignRaisedAccentButton"
+                            Content="Подтвердить"
+                            Command="{Binding SaveIRICommand}" />
+
+                    <TextBox
+                        materialDesign:HintAssist.Hint="NTCNNCNCNCNC"
+                        Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                        VerticalAlignment="Center" />
+
+                </DockPanel>
+            </materialDesign:Card>
+
             <!--Данные измерений-->
-            <materialDesign:Card Grid.Column="1" Padding="32" Margin="16">
+            <materialDesign:Card Grid.Column="2" Padding="32" Margin="16" >
                 <DockPanel>
                     <TextBlock
                         Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                         Text="Данные измерений"
-                        Margin="0 0 0 10" HorizontalAlignment="Center" DockPanel.Dock="Top"/>
+                        Margin="0 0 0 10" HorizontalAlignment="Center" DockPanel.Dock="Top" />
                     <TextBox
                         Text="{Binding TimeAll, StringFormat='0.000000000'}"
                         DockPanel.Dock="Bottom"
@@ -158,23 +228,25 @@
                         Width="200"
                         MaxWidth="400"
                         materialDesign:HintAssist.Hint="Измеренное время (Tполн)"
-                        IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextFieldTextBoxEnabledComboBox}"/>
-                    
+                        IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextFieldTextBoxEnabledComboBox}" />
+
                     <DataGrid ItemsSource="{Binding Params}" AutoGenerateColumns="False" Margin="0 0 0 15">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Время" Binding="{Binding Time, StringFormat='0.000000000'}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Широта" Binding="{Binding Fi, StringFormat='0.000000'}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Долгота" Binding="{Binding Lambda, StringFormat='0.000000'}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Высота" Binding="{Binding Height, StringFormat='0.000'}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Курсовой угол" Binding="{Binding Psi , StringFormat='0.000000'}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Угол тангажа" Binding="{Binding Tangaz, StringFormat='0.000000'}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Угол крена" Binding="{Binding Kren, StringFormat='0.000000'}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Время" Binding="{Binding Time, StringFormat='0.000000000'}" />
+                            <DataGridTextColumn Header="Широта" Binding="{Binding Fi, StringFormat='0.000000'}" />
+                            <DataGridTextColumn Header="Долгота" Binding="{Binding Lambda, StringFormat='0.000000'}" />
+                            <DataGridTextColumn Header="Высота" Binding="{Binding Height, StringFormat='0.000'}" />
+                            <DataGridTextColumn Header="Курсовой угол"
+                                                Binding="{Binding Psi , StringFormat='0.000000'}" />
+                            <DataGridTextColumn Header="Угол тангажа"
+                                                Binding="{Binding Tangaz, StringFormat='0.000000'}" />
+                            <DataGridTextColumn Header="Угол крена" Binding="{Binding Kren, StringFormat='0.000000'}" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
             </materialDesign:Card>
         </Grid>
-        
+
         <!--Сохранение в файл-->
         <Button Grid.Row="2" Margin="10 10 10 0"
                 Command="{Binding SaveCommand}"

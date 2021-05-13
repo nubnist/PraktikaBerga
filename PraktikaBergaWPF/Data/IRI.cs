@@ -7,6 +7,7 @@ namespace WpfApp1.Data
     public class IRI
     {
         public CharacteristicIRI CharacteristicIri { get; set; }
-        public CharacteristicStream IriStream { get; set; }
+        public List<CharacteristicStream> IriStream { get; set; }
+        public int Number { get; set; }
     }
 }

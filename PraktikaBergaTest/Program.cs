@@ -36,16 +36,15 @@ namespace PraktikaBerga
                 Coords = new List<GeographCoord>()
                 {
                     new GeographCoord(){Fi = 59, Lambda = 39}, 
-                    new GeographCoord(){Fi = 59, Lambda = 40},
-                    new GeographCoord(){Fi = 60, Lambda = 39},
-                    new GeographCoord(){Fi = 60, Lambda = 40},
-                    new GeographCoord(){Fi = 59, Lambda = 39}
+                    new GeographCoord(){Fi = 59, Lambda = 39.5},
                 },
                 Height = 10,
                 Speed = 200,
                 Time = 1
             };
             var res = Calc.MakeStream(iri, stream, la, ran, new Catalog());
+
+            int b = 5;
             //File.WriteAllText("potok.txt", res);
         }
     }

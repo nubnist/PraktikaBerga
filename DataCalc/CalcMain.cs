@@ -191,7 +191,7 @@ namespace DataCalc
 						#region Проверка угла пеленга - Проверка 4
 
                         var c = (p_la_iri * trassa_point.v) / r_la_iri; // Косинус угла пеленга
-                        //if (is_ran.charact.BMin > c || is_ran.charact.BMax < c) continue; // Если угол пеленга не попадает в диапазон - выход из цикла
+                        if (is_ran.charact.BMin > c || is_ran.charact.BMax < c) continue; // Если угол пеленга не попадает в диапазон - выход из цикла
 
 						#endregion
 
@@ -207,13 +207,14 @@ namespace DataCalc
                             Kren = trassa_point.Kren,
                             Board = board,
                             F = stream.F,
+                            C = c,
                             Tau = stream.Tau
                         });
                         
 
 						#region Проверка на уже оформленные пакеты - Проверка 5
 
-                        if (is_ran.charact == previousRan)
+                        if (is_ran.charact == previousRan || t == 0)
                         {
                             if (count <= is_ran.charact.N)
                             {
@@ -229,6 +230,7 @@ namespace DataCalc
                                     Kren = trassa_point.Kren,
                                     Board = board,
                                     F = stream.F,
+                                    C = c,
                                     Tau =  stream.Tau
                                 };
                                 package.Add(pack);
@@ -285,7 +287,7 @@ namespace DataCalc
                 t1 += t2;
             }
 
-            return (all_data, packages);
+            return (packages.SelectMany(i => i).ToList(), packages);
         }
 
         /// <summary>
@@ -347,12 +349,18 @@ namespace DataCalc
         /// Массив3 - все импульсы пакетов с погрешностью,
         /// Массив4 - массив усредненых пакетов с погрешностью
         /// </returns>
-        public static (List<Package> arr1, 
+        public static 
+            (List<Package> arr1, 
             List<Package> arr2, 
             List<Package> arr3, 
-            List<Package> arr4) RanUnion(List<(List<Package> all_data, List<List<Package>> packages)> ran_data, 
-            double time_sigma, double fi_sigma, double coord_sigma, double height_sigma, double psi_sigma,
+            List<Package> arr4) 
+            
+            RanUnion
+            
+            (List<(List<Package> all_data, List<List<Package>> packages)> ran_data, 
+            double time_sigma, double coord_sigma, double height_sigma, double psi_sigma,
             double c_sigma, double f_sigma, double tau_sigma)
+        
         {
             var arr1 = new List<Package>(); // Массив всех импульсов пакетов без погрешности
             var arr2 = new List<Package>(); // Массив всех усредненных пакетов без погрешности
@@ -366,7 +374,7 @@ namespace DataCalc
                     Psi = i.Average(j => j.Psi), 
                     Tangaz = i.Average(j => j.Tangaz),
                     Kren = i.Average(j => j.Kren),
-                    Board = i.First().Board, С = i.Average(j => j.С),
+                    Board = i.First().Board, C = i.Average(j => j.C),
                     F = i.Average(j => j.F),
                     Tau = i.Average(j => j.Tau),
                     Type = i.First().Type,
@@ -389,7 +397,7 @@ namespace DataCalc
             arr4 = arr4.OrderBy(i => i.Time).ToList(); // Сортировка по времени
             
 
-            return default;
+            return (arr1.ToList(), arr2.ToList(), arr3.ToList(), arr4.ToList());
         }
         private static IEnumerable<Package> IriDataSigma(List<Package> packages, double time_sigma, double coord_sigma, double height_sigma, double psi_sigma, double c_sigma, double f_sigma, double tau_sigma)
         {
@@ -405,7 +413,7 @@ namespace DataCalc
                     Tangaz = i.Tangaz,
                     Kren = i.Kren,
                     Board = i.Board, 
-                    С = (double)RandomNorm(i.С, c_sigma),
+                    C = (double)RandomNorm(i.C, c_sigma),
                     F = (double)RandomNorm(i.F, f_sigma),
                     Tau = (double)RandomNorm(i.Tau, tau_sigma),
                     Type = i.Type,

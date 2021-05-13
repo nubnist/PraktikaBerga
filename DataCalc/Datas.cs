@@ -43,7 +43,7 @@ namespace DataCalc
         /// <summary>
         /// Косинус угла пелленга
         /// </summary>
-        public double С { get; set; }
+        public double C { get; set; }
         /// <summary>
         /// Несущая частота
         /// </summary>
@@ -60,6 +60,12 @@ namespace DataCalc
         /// Порядковый номер в списке излучающих ИРИ
         /// </summary>
         public int Number { get; set; }
+
+
+        public override string ToString()
+        {
+            return $"{Time:0.000000000}\t{Fi:0.00000}\t{Lambda:0.00000}\t{Height:0.000}\t{Psi:0.00000}\t{Tangaz:0.00000}\t{Kren:0.00000}\t{Board}\t{C:0.00000}\t{F:0.0}\t{Tau:0.000}\t{Type}";
+        }
     }
 
 #region Структуры данных для процедуры MakeStream
@@ -127,9 +133,13 @@ public class CharacteristicMovingLA
 public class CharacteristicIRI
 {
     /// <summary>
-    /// Условный номер ИЛИ 
+    /// Условный номер ИРИ 
     /// </summary>
     public int NType { get; set; }
+    /// <summary>
+    /// Условный код типа ИРИ
+    /// </summary>
+    public string Type { get; set; }
     /// <summary>
     /// Географические координаты точки размещения ИРИ на поверхности земли
     /// </summary>

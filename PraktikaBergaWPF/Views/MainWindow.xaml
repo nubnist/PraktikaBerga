@@ -14,7 +14,8 @@
         xmlns:local="clr-namespace:WpfApp1"
         xmlns:viewModels="clr-namespace:WpfApp1.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="1000" Width="1500">
+        Title="Моделирование приема сигналов" MinHeight="700" MinWidth="1300" Height="1000" Width="1500"
+        WindowStartupLocation="CenterScreen">
     <Window.DataContext>
         <viewModels:MainViewModel />
     </Window.DataContext>
@@ -24,192 +25,204 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-            <!--Параметры трассы-->
-            <materialDesign:Card Padding="32" Margin="16">
-                <StackPanel Orientation="Vertical">
-                    <TextBlock
-                        Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                        Text="Параметры полета ЛА"
-                        Margin="0 0 0 10" HorizontalAlignment="Center" />
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBox
-                            Text="{Binding Height}"
-                            Style="{StaticResource MaterialDesignFilledTextBox}"
-                            VerticalAlignment="Top"
-                            AcceptsReturn="True"
-                            TextWrapping="Wrap"
-                            MaxWidth="400"
-                            Margin="15"
-                            materialDesign:HintAssist.Hint="Высота (км)" />
-                        <TextBox
-                            Text="{Binding Speed}"
-                            Style="{StaticResource MaterialDesignFilledTextBox}"
-                            VerticalAlignment="Top"
-                            AcceptsReturn="True"
-                            TextWrapping="Wrap"
-                            MaxWidth="400"
-                            Margin="15"
-                            materialDesign:HintAssist.Hint="Скорость (м/сек)" />
-                    </StackPanel>
+        
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            
+            
+             <!--Параметры трассы-->
+        <materialDesign:Card Grid.Column="0" Padding="10" Margin="5">
+            <StackPanel Orientation="Vertical">
+                <TextBlock
+                    TextWrapping="Wrap"
+                    Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                    Margin="0 0 0 10" HorizontalAlignment="Center" TextAlignment="Center">Параметры полета<LineBreak/>ЛА</TextBlock>
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBox
+                        Text="{Binding Height}"
+                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                        VerticalAlignment="Top"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        MaxWidth="400"
+                        Margin="15"
+                        materialDesign:HintAssist.Hint="Высота (км)" />
+                    <TextBox
+                        Text="{Binding Speed}"
+                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                        VerticalAlignment="Top"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        MaxWidth="400"
+                        Margin="15"
+                        materialDesign:HintAssist.Hint="Скорость (м/сек)" />
+                </StackPanel>
+            </StackPanel>
+
+        </materialDesign:Card>
+
+        <!--Узловые точки-->
+        <materialDesign:Card Grid.Column="1" Padding="10" Margin="5">
+            <DockPanel>
+                <TextBlock
+                    Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                    Margin="0 0 0 10"
+                    HorizontalAlignment="Center" DockPanel.Dock="Top" TextAlignment="Center">Узловые точки<LineBreak/> полета ЛА</TextBlock>
+
+                <DataGrid ItemsSource="{Binding Coords}" HorizontalAlignment="Center" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Широта" Binding="{Binding Fi}" />
+                        <DataGridTextColumn Header="Долгота" Binding="{Binding Lambda}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+            </DockPanel>
+        </materialDesign:Card>
+
+        <!--Параметры РЭН-->
+        <materialDesign:Card Grid.Column="2"  Padding="10" Margin="5">
+            <DockPanel>
+                <TextBlock
+                    Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                    Text="Параметры системы РЭН"
+                    Margin="0 0 0 10"
+                    HorizontalAlignment="Center" DockPanel.Dock="Top" />
+
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBox
+                        Text="{Binding Bmin}"
+                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                        VerticalAlignment="Top"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        MaxWidth="400"
+                        Margin="15"
+                        materialDesign:HintAssist.Hint="Минимальный угол пеленга Bmin" />
+                    <TextBox
+                        Text="{Binding Bmax}"
+                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                        VerticalAlignment="Top"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        MaxWidth="400"
+                        Margin="15"
+                        materialDesign:HintAssist.Hint="Максимальный угол пеленга Bmax" />
+                    <TextBox
+                        Text="{Binding Npak}"
+                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                        VerticalAlignment="Top"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        MaxWidth="400"
+                        Margin="15"
+                        materialDesign:HintAssist.Hint="Количество сигналов в пакете" />
                 </StackPanel>
 
-            </materialDesign:Card>
+                <DataGrid ItemsSource="{Binding Rans}"
+                          HorizontalAlignment="Center"
+                          AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Борт" Binding="{Binding Board}" />
+                        <DataGridTextColumn Header="Продолжительность подцикла (с)" Binding="{Binding Duration}" />
+                        <DataGridTextColumn Header="Минимальная частота (МГц)" Binding="{Binding MinSignal}" />
+                        <DataGridTextColumn Header="Максимальная частота (МГц)" Binding="{Binding MaxSignal}" />
+                    </DataGrid.Columns>
+                </DataGrid>
 
-            <!--Узловые точки-->
-            <materialDesign:Card Padding="32" Margin="16">
-                <DockPanel>
-                    <TextBlock
-                        Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                        Text="Узловые точки полета ЛА"
-                        Margin="0 0 0 10"
-                        HorizontalAlignment="Center" DockPanel.Dock="Top" />
+            </DockPanel>
+        </materialDesign:Card>
 
-                    <DataGrid ItemsSource="{Binding Coords}" HorizontalAlignment="Center" AutoGenerateColumns="False">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Широта" Binding="{Binding Fi}" />
-                            <DataGridTextColumn Header="Долгота" Binding="{Binding Lambda}" />
-                        </DataGrid.Columns>
-                    </DataGrid>
-
-                </DockPanel>
-            </materialDesign:Card>
-
-            <!--Параметры РЭН-->
-            <materialDesign:Card Padding="32" Margin="16">
-                <DockPanel>
-                    <TextBlock
-                        Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                        Text="Параметры РЭН"
-                        Margin="0 0 0 10"
-                        HorizontalAlignment="Center" DockPanel.Dock="Top" />
-
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                        <TextBox
-                            Text="{Binding Bmin}"
-                            Style="{StaticResource MaterialDesignFilledTextBox}"
-                            VerticalAlignment="Top"
-                            AcceptsReturn="True"
-                            TextWrapping="Wrap"
-                            MaxWidth="400"
-                            Margin="15"
-                            materialDesign:HintAssist.Hint="Bmin" />
-                        <TextBox
-                            Text="{Binding Bmax}"
-                            Style="{StaticResource MaterialDesignFilledTextBox}"
-                            VerticalAlignment="Top"
-                            AcceptsReturn="True"
-                            TextWrapping="Wrap"
-                            MaxWidth="400"
-                            Margin="15"
-                            materialDesign:HintAssist.Hint="Bmax" />
-                        <TextBox
-                            Text="{Binding Npak}"
-                            Style="{StaticResource MaterialDesignFilledTextBox}"
-                            VerticalAlignment="Top"
-                            AcceptsReturn="True"
-                            TextWrapping="Wrap"
-                            MaxWidth="400"
-                            Margin="15"
-                            materialDesign:HintAssist.Hint="Nпак" />
-                    </StackPanel>
-
-                    <DataGrid ItemsSource="{Binding Rans}"
-                              HorizontalAlignment="Center"
-                              AutoGenerateColumns="False">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Борт" Binding="{Binding Board}" />
-                            <DataGridTextColumn Header="Продолжительность подцикла" Binding="{Binding Duration}" />
-                            <DataGridTextColumn Header="Минимальная частота" Binding="{Binding MinSignal}" />
-                            <DataGridTextColumn Header="Максимальная частота" Binding="{Binding MaxSignal}" />
-                        </DataGrid.Columns>
-                    </DataGrid>
-
-                </DockPanel>
-            </materialDesign:Card>
-
-            <!--Ошибки измерений-->
-            <materialDesign:Card Padding="32" Margin="16">
-                <StackPanel Orientation="Vertical">
-                    <TextBlock
-                        Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                        Text="Средние ошибки измерения параметров"
-                        Margin="0 0 0 10" HorizontalAlignment="Center" />
-                    
-                    <StackPanel Orientation="Horizontal">
-                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBox
-                            Text="{Binding TimeSigma}"
-                            Style="{StaticResource MaterialDesignFilledTextBox}"
-                            VerticalAlignment="Top"
-                            AcceptsReturn="True"
-                            TextWrapping="Wrap"
-                            MaxWidth="400"
-                            Margin="15"
-                            materialDesign:HintAssist.Hint="Времени (с)" />
-                        <TextBox
-                            Text="{Binding PsiSigma}"
-                            Style="{StaticResource MaterialDesignFilledTextBox}"
-                            VerticalAlignment="Top"
-                            AcceptsReturn="True"
-                            TextWrapping="Wrap"
-                            MaxWidth="400"
-                            Margin="15"
-                            materialDesign:HintAssist.Hint="Курсового угла (градусы)" />
-                        <TextBox
-                            Text="{Binding CoordSigma}"
-                            Style="{StaticResource MaterialDesignFilledTextBox}"
-                            VerticalAlignment="Top"
-                            AcceptsReturn="True"
-                            TextWrapping="Wrap"
-                            MaxWidth="400"
-                            Margin="15"
-                            materialDesign:HintAssist.Hint="Местоположения (км)" />
-                        <TextBox
-                            Text="{Binding HeightSigma}"
-                            Style="{StaticResource MaterialDesignFilledTextBox}"
-                            VerticalAlignment="Top"
-                            AcceptsReturn="True"
-                            TextWrapping="Wrap"
-                            MaxWidth="400"
-                            Margin="15"
-                            materialDesign:HintAssist.Hint="Высоты (м)" />
-                        </StackPanel>
-                        
-                        <StackPanel Orientation="Vertical">
-                            <TextBox
-                                Text="{Binding CSigma}"
-                                Style="{StaticResource MaterialDesignFilledTextBox}"
-                                VerticalAlignment="Top"
-                                AcceptsReturn="True"
-                                TextWrapping="Wrap"
-                                MaxWidth="400"
-                                Margin="15"
-                                materialDesign:HintAssist.Hint="Угл пелленга" />
-                            <TextBox
-                                Text="{Binding FSigma}"
-                                Style="{StaticResource MaterialDesignFilledTextBox}"
-                                VerticalAlignment="Top"
-                                AcceptsReturn="True"
-                                TextWrapping="Wrap"
-                                MaxWidth="400"
-                                Margin="15"
-                                materialDesign:HintAssist.Hint="Частота" />
-                            <TextBox
-                                Text="{Binding TauSigma}"
-                                Style="{StaticResource MaterialDesignFilledTextBox}"
-                                VerticalAlignment="Top"
-                                AcceptsReturn="True"
-                                TextWrapping="Wrap"
-                                MaxWidth="400"
-                                Margin="15"
-                                materialDesign:HintAssist.Hint="Длительность сигнала" />
-                        </StackPanel>
+        <!--Ошибки измерений-->
+        <materialDesign:Card Grid.Column="3"  Padding="10" Margin="5">
+            <StackPanel Orientation="Vertical">
+                <TextBlock
+                    Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                    Margin="0 0 0 10" HorizontalAlignment="Center" TextAlignment="Center">Средние ошибки<LineBreak/>измерения параметров</TextBlock>
+                
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBox
+                        Text="{Binding TimeSigma}"
+                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                        VerticalAlignment="Top"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        MaxWidth="400"
+                        Margin="5"
+                        materialDesign:HintAssist.Hint="Времени (мкс)" />
+                    <TextBox
+                        Text="{Binding PsiSigma}"
+                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                        VerticalAlignment="Top"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        MaxWidth="400"
+                        Margin="5"
+                        materialDesign:HintAssist.Hint="Курсового угла (градусы)" />
+                    <TextBox
+                        Text="{Binding CoordSigma}"
+                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                        VerticalAlignment="Top"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        MaxWidth="400"
+                        Margin="5"
+                        materialDesign:HintAssist.Hint="Местоположения ЛА (м)" />
+                    <TextBox
+                        Text="{Binding HeightSigma}"
+                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                        VerticalAlignment="Top"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        MaxWidth="400"
+                        Margin="5"
+                        materialDesign:HintAssist.Hint="Высоты (м)" />
                     </StackPanel>
                     
+                    <StackPanel Orientation="Vertical">
+                        <TextBox
+                            Text="{Binding CSigma}"
+                            Style="{StaticResource MaterialDesignFilledTextBox}"
+                            VerticalAlignment="Top"
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            MaxWidth="400"
+                            Margin="5"
+                            materialDesign:HintAssist.Hint="Косинуса угла пеленга" />
+                        <TextBox
+                            Text="{Binding FSigma}"
+                            Style="{StaticResource MaterialDesignFilledTextBox}"
+                            VerticalAlignment="Top"
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            MaxWidth="400"
+                            Margin="5"
+                            materialDesign:HintAssist.Hint="Частоты (МГц)" />
+                        <TextBox
+                            Text="{Binding TauSigma}"
+                            Style="{StaticResource MaterialDesignFilledTextBox}"
+                            VerticalAlignment="Top"
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            MaxWidth="400"
+                            Margin="5"
+                            materialDesign:HintAssist.Hint="Длительности импульса (мс)" />
+                    </StackPanel>
                 </StackPanel>
-            </materialDesign:Card>
-        </StackPanel>
+                
+            </StackPanel>
+        </materialDesign:Card>
+
+            
+            
+        </Grid>
+        
+       
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -219,11 +232,11 @@
             </Grid.ColumnDefinitions>
 
             <!--Данные ИРИ-->
-            <materialDesign:Card Grid.Column="0" Padding="32" Margin="16">
+            <materialDesign:Card Grid.Column="0" Padding="10" Margin="5">
                 <DockPanel>
                     <TextBlock
                         Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                        Text="Данные ИРИ"
+                        Text="Моделируемые источники излучения"
                         Margin="0 0 0 10"
                         HorizontalAlignment="Center" DockPanel.Dock="Top" />
 
@@ -231,22 +244,22 @@
                         <Button
                             Command="{Binding AddIRICommand}"
                             Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}"
-                            ToolTip="MaterialDesignFloatingActionMiniAccentButton">
+                            ToolTip="Добавить новый ИРИ">
                             <materialDesign:PackIcon Kind="Add" />
                         </Button>
                         <Button Margin="5"
                                 Command="{Binding RemoveIRICommand}"
                                 Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}"
-                                ToolTip="MaterialDesignFloatingActionMiniAccentButton">
+                                ToolTip="Удалить ИРИ">
                             <materialDesign:PackIcon Kind="Delete" />
                         </Button>
                         <Button Command="{Binding EditIRICommand}"
                                 Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}"
-                                ToolTip="MaterialDesignFloatingActionMiniAccentButton">
+                                ToolTip="Редактировать ИРИ">
                             <materialDesign:PackIcon Kind="Edit" />
                         </Button>
                     </StackPanel>
-                    <ListBox ItemsSource="{Binding Iris}" MinWidth="200" SelectedItem="{Binding SelectedIRI}">
+                    <ListBox Name="IrisList" ItemsSource="{Binding Iris}" MinWidth="200" SelectedItem="{Binding SelectedIRI}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <DockPanel MinWidth="200">
@@ -260,7 +273,7 @@
             </materialDesign:Card>
 
             <!--Настройки ИРИ-->
-            <materialDesign:Card Grid.Column="1" Padding="32" Margin="16"
+            <materialDesign:Card Grid.Column="1" Padding="10" Margin="5"
                                  Visibility="{Binding EditIriVisibility}"
                                  Width="{Binding EditIriHeight}">
                 <DockPanel Grid.Column="1" Margin="20">
@@ -292,7 +305,7 @@
 
                     <Button DockPanel.Dock="Bottom"
                             Style="{StaticResource MaterialDesignRaisedAccentButton}"
-                            ToolTip="Resource name: MaterialDesignRaisedAccentButton"
+                            ToolTip="Сохранить настройки ИРИ"
                             Content="Подтвердить"
                             Command="{Binding SaveIRICommand}" />
 
@@ -311,16 +324,16 @@
             </materialDesign:Card>
 
             <!--Данные измерений-->
-            <materialDesign:Card Grid.Column="2" Padding="32" Margin="16">
+            <materialDesign:Card Grid.Column="2" Padding="10" Margin="5">
                 <TabControl>
-                    <TabItem Header="Импульсы пакетов без погрешности">
+                    <TabItem Header="Импульсы пакетов без учета ошибок измерения">
                         <DockPanel>
                             <TextBlock
                                 Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                                Text="Данные измерений"
+                                Text="Результат моделирования"
                                 Margin="0 0 0 10" HorizontalAlignment="Center" DockPanel.Dock="Top" />
 
-                            <DataGrid ItemsSource="{Binding Arr1}" AutoGenerateColumns="False" Margin="0 0 0 15">
+                            <DataGrid ItemsSource="{Binding Arr1}" AutoGenerateColumns="False" Margin="0 0 0 15" IsReadOnly="True">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Время"
                                                         Binding="{Binding Time, StringFormat='0.000000000'}" />
@@ -336,7 +349,7 @@
                                     <DataGridTextColumn Header="Угол крена"
                                                         Binding="{Binding Kren, StringFormat='0.000000'}" />
                                     <DataGridTextColumn Header="Борт" Binding="{Binding Board}" />
-                                    <DataGridTextColumn Header="Угл пелленга"
+                                    <DataGridTextColumn Header="Угл пеленга"
                                                         Binding="{Binding C, StringFormat='0.000000'}" />
                                     <DataGridTextColumn Header="Частота" Binding="{Binding F, StringFormat='0.000000'}" />
                                     <DataGridTextColumn Header="Длительность сигнала"
@@ -347,7 +360,7 @@
                             </DataGrid>
                         </DockPanel>
                     </TabItem>
-                    <TabItem Header="Пакеты без погрешностей">
+                    <TabItem Header="Пакеты без учета ошибок измерения">
                         <DockPanel>
                             <TextBlock
                                 Style="{StaticResource MaterialDesignHeadline6TextBlock}"
@@ -370,7 +383,7 @@
                                     <DataGridTextColumn Header="Угол крена"
                                                         Binding="{Binding Kren, StringFormat='0.000000'}" />
                                     <DataGridTextColumn Header="Борт" Binding="{Binding Board}" />
-                                    <DataGridTextColumn Header="Угл пелленга"
+                                    <DataGridTextColumn Header="Угл пеленга"
                                                         Binding="{Binding C, StringFormat='0.000000'}" />
                                     <DataGridTextColumn Header="Частота" Binding="{Binding F, StringFormat='0.000000'}" />
                                     <DataGridTextColumn Header="Длительность сигнала"
@@ -381,7 +394,7 @@
                             </DataGrid>
                         </DockPanel>
                     </TabItem>
-                    <TabItem Header="Импульсы пакетов с погрешностью">
+                    <TabItem Header="Импульсы пакетов с учетом ошибок измерения">
                         <DockPanel>
                             <TextBlock
                                 Style="{StaticResource MaterialDesignHeadline6TextBlock}"
@@ -404,7 +417,7 @@
                                     <DataGridTextColumn Header="Угол крена"
                                                         Binding="{Binding Kren, StringFormat='0.000000'}" />
                                     <DataGridTextColumn Header="Борт" Binding="{Binding Board}" />
-                                    <DataGridTextColumn Header="Угл пелленга"
+                                    <DataGridTextColumn Header="Угл пеленга"
                                                         Binding="{Binding C, StringFormat='0.000000'}" />
                                     <DataGridTextColumn Header="Частота" Binding="{Binding F, StringFormat='0.000000'}" />
                                     <DataGridTextColumn Header="Длительность сигнала"
@@ -415,7 +428,7 @@
                             </DataGrid>
                         </DockPanel>
                     </TabItem>
-                    <TabItem Header="Пакеты с покрешностью">
+                    <TabItem Header="Пакеты с учетом ошибок измерения">
                         <DockPanel>
                             <TextBlock
                                 Style="{StaticResource MaterialDesignHeadline6TextBlock}"
@@ -438,7 +451,7 @@
                                     <DataGridTextColumn Header="Угол крена"
                                                         Binding="{Binding Kren, StringFormat='0.000000'}" />
                                     <DataGridTextColumn Header="Борт" Binding="{Binding Board}" />
-                                    <DataGridTextColumn Header="Угл пелленга"
+                                    <DataGridTextColumn Header="Угл пеленга"
                                                         Binding="{Binding C, StringFormat='0.000000'}" />
                                     <DataGridTextColumn Header="Частота" Binding="{Binding F, StringFormat='0.000000'}" />
                                     <DataGridTextColumn Header="Длительность сигнала"
@@ -460,7 +473,7 @@
                 Style="{StaticResource MaterialDesignRaisedAccentButton}"
                 Height="50"
                 materialDesign:ButtonAssist.CornerRadius="25 25 0 0"
-                ToolTip="MaterialDesignRaisedAccentButton with Round Top Corners">
+                ToolTip="Запуск процесса моделирования">
             
             <TextBlock
                 Text="Начать моделирование" />

@@ -26,8 +26,8 @@ namespace WpfApp1.ViewModels
         public RelayCommand BuildModelCommand { get; }
         public RelayCommand Modeling { get; }
         public double TimeSigma { get; set; } = 0;
-        public double Bmax { get; set; } = 0;
-        public double Bmin { get; set; } = 0;
+        public double Bmax { get; set; } = 1;
+        public double Bmin { get; set; } = -1;
         public int Npak { get; set; } = 5;
         public double PsiSigma { get; set; } = 0;
         public double CoordSigma { get; set; } = 0;
@@ -77,7 +77,7 @@ namespace WpfApp1.ViewModels
                 {
                     CharacteristicIri = new CharacteristicIRI()
                     {
-                        Type = "ABC37", 
+                        Type = "1 - ABC37", 
                         NType = 1,
                         Coord = new GeographCoord()
                         {
@@ -105,7 +105,7 @@ namespace WpfApp1.ViewModels
                 {
                     CharacteristicIri = new CharacteristicIRI()
                     {
-                        Type = "Q58", 
+                        Type = "2 - Q58", 
                         NType = 2,
                         Coord = new GeographCoord()
                         {
@@ -319,7 +319,7 @@ namespace WpfApp1.ViewModels
                 });
 
                 var completeArrays = Calc.RanUnion(results, 
-                    TimeSigma, 
+                    TimeSigma / 1000000, 
                     CoordSigma, 
                     HeightSigma, 
                     PsiSigma, 
@@ -332,10 +332,10 @@ namespace WpfApp1.ViewModels
                 Arr3 = new ObservableCollection<Package>(completeArrays.arr3);
                 Arr4 = new ObservableCollection<Package>(completeArrays.arr4);
                 
-                File.WriteAllText("arr1.txt", string.Join('\n', Arr1));
-                File.WriteAllText("arr2.txt", string.Join('\n', Arr2));
-                File.WriteAllText("arr3.txt", string.Join('\n', Arr3));
-                File.WriteAllText("arr4.txt", string.Join('\n', Arr4));
+                File.WriteAllText("../arr1.txt", string.Join('\n', Arr1));
+                File.WriteAllText("../arr2.txt", string.Join('\n', Arr2));
+                File.WriteAllText("../arr3.txt", string.Join('\n', Arr3));
+                File.WriteAllText("../arr4.txt", string.Join('\n', Arr4));
                 
                 ModelingButtonVisibility = Visibility.Visible;
                 ProgressVisibility = Visibility.Collapsed;

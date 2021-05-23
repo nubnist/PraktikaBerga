@@ -8,14 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="IronPython" Version="2.7.11" />
-      <PackageReference Include="IronPython.StdLib" Version="2.7.11" />
-      <PackageReference Include="MaterialDesignThemes" Version="4.0.0-ci2405" />
-      <PackageReference Include="PropertyChanged.Fody" Version="3.3.1" />
+        <PackageReference Include="IronPython" Version="2.7.11" />
+        <PackageReference Include="IronPython.StdLib" Version="2.7.11" />
+        <PackageReference Include="MaterialDesignThemes" Version="4.0.0-ci2405" />
+        <PackageReference Include="PropertyChanged.Fody" Version="3.3.1" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\DataCalc\DataCalc.csproj" />
+        <ProjectReference Include="..\DataCalc\DataCalc.csproj" />
     </ItemGroup>
 
 </Project>

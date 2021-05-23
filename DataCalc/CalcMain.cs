@@ -72,131 +72,184 @@ namespace DataCalc
             while (t1 <= flight_end)
             {
                 var t2 = 0.0;
-                foreach (var stream in characts_stream)
+                t2 = SteamsModel(charact_iri, characts_stream, charact_mov_la, t1, t2, flight_end, cycle_ran, all_data, packages, ref results);
+
+                t1 += t2;
+            }
+
+            return (packages.SelectMany(i => i).ToList(), packages);
+        }
+
+        private static double SteamsModel(
+            CharacteristicIRI charact_iri,
+            List<CharacteristicStream> characts_stream,
+            CharacteristicMovingLA charact_mov_la,
+            double t1, double t2,
+            double flight_end, IEnumerable<(double start, double end, CharacteristicRAN charact)> cycle_ran,
+            List<Package> all_data,
+            List<List<Package>> packages, ref string results)
+        {
+
+            foreach (var stream in characts_stream)
+            {
+                var count = 0;
+                var firstPackageTime = 0.0;
+                CharacteristicRAN previousRan = null;
+                var package = new List<Package>();
+
+                StreamCalc(charact_iri, charact_mov_la, t1, t2, flight_end, cycle_ran, all_data, packages,
+                    ref results, stream, previousRan, count, package);
+                Console.WriteLine("---------------------------");
+                t2 += stream.Duration;
+            }
+            return t2;
+        }
+
+        private static void StreamCalc(
+            CharacteristicIRI charact_iri, CharacteristicMovingLA charact_mov_la, double t1, double t2, double flight_end,
+            IEnumerable<(double start, double end, CharacteristicRAN charact)> cycle_ran, List<Package> all_data, List<List<Package>> packages,
+            ref string results, CharacteristicStream stream, CharacteristicRAN previousRan, int count, List<Package> package)
+        {
+
+            for (var t3 = 0.0; t3 < stream.Duration; t3 += stream.Dt)
+            {
+                if (t1 + t2 + t3 > flight_end) break;
+
+                #region Подгонка под таблицу 2
+
+                var t = t1 + t2 + t3; // Время, будет использоваться для синхронизации с таблицей 2
+                var is_ran = cycle_ran // Определение принадлежности к циклограмме работы системы РЭН по времени
+                   .FirstOrDefault(
+                        i => i.start * 1000 <= t // Умножаю на 1000 чтобы перевести секунды в милесекунды
+                             && i.end * 1000 > t);
+                if (is_ran.Equals(default(ValueTuple<double, double, CharacteristicRAN>)))
+                    t = t % (cycle_ran.Last().end * 1000);
+                #endregion
+
+                
+                #region Принадлежность к циклограмме работы системы РЭН - Проверка 1
+
+                is_ran = cycle_ran // Определение принадлежности к циклограмме работы системы РЭН
+                   .FirstOrDefault(
+                        i => i.start * 1000 <= t // Умножаю на 1000 чтобы перевести секунды в милесекунды
+                             && i.end * 1000 > t
+                             && i.charact.MinSignal <= stream.F
+                             && i.charact.MaxSignal >= stream.F);
+
+                if (is_ran.Equals(default(ValueTuple<double, double, CharacteristicRAN>)))
+                    continue; // Если не подходит по характеристикам переходим на следующую итерацию.
+
+				#endregion
+
+
+				#region Обращение к процедуре MakeTrassa
+
+                IEnumerable<Param> trassa;
+                if (t1 + t2 + t3 == 0)
                 {
-                    var count = 0;
-                    var firstPackageTime = 0.0;
-                    CharacteristicRAN previousRan = null;
-                    var package = new List<Package>();
-
-                    for (var t3 = 0.0; t3 < stream.Duration; t3 += stream.Dt)
+                    trassa = MakeTrassa(
+                        charact_mov_la.Height, charact_mov_la.Speed, stream.Duration / 1000,
+                        charact_mov_la.Coords); // Расчет данных о полете ЛА по ломанной с шагом dt
+                }
+                else
+                {
+                    try
                     {
-                        if (t1 + t2 + t3 > flight_end) break;
+                        trassa = MakeTrassa(
+                            charact_mov_la.Height, charact_mov_la.Speed, (t1 + t2 + t3) / 1000,
+                            charact_mov_la.Coords); // Расчет данных о полете ЛА по ломанной с шагом dt
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        throw;
+                    }
 
-
-						#region Подгонка под таблицу 2
-
-                        var t = t1 + t2 + t3; // Время, будет использоваться для синхронизации с таблицей 2
-                        var is_ran = cycle_ran // Определение принадлежности к циклограмме работы системы РЭН по времени
-                           .FirstOrDefault(
-                                i => i.start * 1000 <= t // Умножаю на 1000 чтобы перевести секунды в милесекунды
-                                     && i.end * 1000 > t);
-                        if (is_ran.Equals(default(ValueTuple<double, double, CharacteristicRAN>)))
-                            t = t % (cycle_ran.Last().end * 1000);
-
-						#endregion
-
-
-						#region Принадлежность к циклограмме работы системы РЭН - Проверка 1
-
-                        is_ran = cycle_ran // Определение принадлежности к циклограмме работы системы РЭН
-                           .FirstOrDefault(
-                                i => i.start * 1000 <= t // Умножаю на 1000 чтобы перевести секунды в милесекунды
-                                     && i.end * 1000 > t
-                                     && i.charact.MinSignal <= stream.F
-                                     && i.charact.MaxSignal >= stream.F);
-
-                        if (is_ran.Equals(default(ValueTuple<double, double, CharacteristicRAN>)))
-                            continue; // Если не подходит по характеристикам переходим на следующую итерацию.
+                }
+                var trassa_point =
+                    trassa.FirstOrDefault(i => ($"{(i.Time * 1000):0.000000000}" == $"{(t1 + t2 + t3):0.000000000}")) // Определение данных ЛА в текущий момент
+                    ?? throw new Exception("Такой точки нету");
 
 						#endregion
 
 
-						#region Обращение к процедуре MakeTrassa
+				#region Общие расчеты - геоцентрические координаты ИРИ и ЛА, координаты вектора от ЛА к ИРИ, расстояние между ЛА и ИРИ
 
-                        IEnumerable<Param> trassa;
-                        if (t1 + t2 + t3 == 0)
-                        {
-                            trassa = MakeTrassa(
-                                charact_mov_la.Height, charact_mov_la.Speed, stream.Duration / 1000,
-                                charact_mov_la.Coords); // Расчет данных о полете ЛА по ломанной с шагом dt
-                        }
-                        else
-                        {
-                            try
-                            {
-                                trassa = MakeTrassa(
-                                    charact_mov_la.Height, charact_mov_la.Speed, (t1 + t2 + t3) / 1000,
-                                    charact_mov_la.Coords); // Расчет данных о полете ЛА по ломанной с шагом dt
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e);
-                                throw;
-                            }
+                var p_iri = new GeocentrCoord() // Геоцентрические координаты ИРИ
+                {
+                    X = R * Cos(charact_iri.Coord.Fi) * Cos(charact_iri.Coord.Lambda),
+                    Y = R * Cos(charact_iri.Coord.Fi) * Sin(charact_iri.Coord.Lambda),
+                    Z = R * Sin(charact_iri.Coord.Fi)
+                };
+                var p_la = trassa_point.p;
+                var p_la_iri = p_iri - p_la; // Геоцентрические координаты вектора, направленного от ЛА к ИРИ
+                var r_la_iri = GeocentrCoord.Abs(p_la_iri); // Расстояние между ЛА и ИРИ
 
-                        }
-                        var trassa_point =
-                            trassa.FirstOrDefault(i => ($"{(i.Time * 1000):0.000000000}" == $"{(t1 + t2 + t3):0.000000000}")) // Определение данных ЛА в текущий момент
-                            ?? throw new Exception("Такой точки нету");
-
-						#endregion
+				#endregion
 
 
-						#region Общие расчеты - геоцентрические координаты ИРИ и ЛА, координаты вектора от ЛА к ИРИ, расстояние между ЛА и ИРИ
+				#region Проверка на нахождение в пределах радиовидимости - Проверка 2
 
-                        var p_iri = new GeocentrCoord() // Геоцентрические координаты ИРИ
-                        {
-                            X = R * Cos(charact_iri.Coord.Fi) * Cos(charact_iri.Coord.Lambda),
-                            Y = R * Cos(charact_iri.Coord.Fi) * Sin(charact_iri.Coord.Lambda),
-                            Z = R * Sin(charact_iri.Coord.Fi)
-                        };
-                        var p_la = trassa_point.p;
-                        var p_la_iri = p_iri - p_la; // Геоцентрические координаты вектора, направленного от ЛА к ИРИ
-                        var r_la_iri = GeocentrCoord.Abs(p_la_iri); // Расстояние между ЛА и ИРИ
+                var D = 1.15 * Math.Sqrt(Math.Pow(R + trassa_point.Height, 2) - R * R); // Дальность радиогаризонта
+                if (r_la_iri > D) continue; // ИРИ НЕ находится в пределах радиовидимости ЛА - на следующую итерацию
 
-						#endregion
+				#endregion
 
 
-						#region Проверка на нахождение в пределах радиовидимости - Проверка 2
+				#region Проверка борта приема - Проверка 3
 
-                        var D = 1.15 * Math.Sqrt(Math.Pow(R + trassa_point.Height, 2) - R * R); // Дальность радиогаризонта
-                        if (r_la_iri > D) continue; // ИРИ НЕ находится в пределах радиовидимости ЛА - на следующую итерацию
+                double[,] matrix =
+                {
+                    {
+                        p_la_iri.X, p_la_iri.Y, p_la_iri.Z
+                    },
+                    {
+                        trassa_point.v.X, trassa_point.v.Y, trassa_point.v.Z
+                    },
+                    {
+                        0, 1, 0
+                    }
+                };
+                var delta_la_iri = Determ(matrix);
+                var board = delta_la_iri < 0 ? CharacteristicRAN.Boards.L : CharacteristicRAN.Boards.R; // Определение борта
+                if (is_ran.charact.Board != board) // Если знак не соответствует бортам - следующая итерация
+                    continue;
 
-						#endregion
-
-
-						#region Проверка борта приема - Проверка 3
-
-                        double[,] matrix =
-                        {
-                            {
-                                p_la_iri.X, p_la_iri.Y, p_la_iri.Z
-                            },
-                            {
-                                trassa_point.v.X, trassa_point.v.Y, trassa_point.v.Z
-                            },
-                            {
-                                0, 1, 0
-                            }
-                        };
-                        var delta_la_iri = Determ(matrix);
-                        var board = delta_la_iri < 0 ? CharacteristicRAN.Boards.L : CharacteristicRAN.Boards.R; // Определение борта
-                        if (is_ran.charact.Board != board) // Если знак не соответствует бортам - следующая итерация
-                            continue;
-
-						#endregion
+				#endregion
 
 
-						#region Проверка угла пеленга - Проверка 4
+				#region Проверка угла пеленга - Проверка 4
 
-                        var c = (p_la_iri * trassa_point.v) / r_la_iri; // Косинус угла пеленга
-                        if (is_ran.charact.BMin > c || is_ran.charact.BMax < c) continue; // Если угол пеленга не попадает в диапазон - выход из цикла
+                var c = (p_la_iri * trassa_point.v) / r_la_iri; // Косинус угла пеленга
+                if (is_ran.charact.BMin > c || is_ran.charact.BMax < c) continue; // Если угол пеленга не попадает в диапазон - выход из цикла
 
-						#endregion
+				#endregion
 
-                        // Заполнение массива со всеми излученными сигналами
-                        all_data.Add(new Package()
+                // Заполнение массива со всеми излученными сигналами
+                all_data.Add(new Package()
+                {
+                    Time = (t1 + t2 + t3) / 1000.0,
+                    Fi = trassa_point.Fi,
+                    Lambda = trassa_point.Lambda,
+                    Height = trassa_point.Height,
+                    Psi = trassa_point.Psi < 0 ? 360 + trassa_point.Psi : trassa_point.Psi,
+                    Tangaz = trassa_point.Tangaz,
+                    Kren = trassa_point.Kren,
+                    Board = board,
+                    F = stream.F,
+                    C = c,
+                    Tau = stream.Tau
+                });
+
+
+				#region Проверка на уже оформленные пакеты - Проверка 5
+
+                if (is_ran.charact == previousRan || t == 0)
+                {
+                    if (count <= is_ran.charact.N)
+                    {
+                        count++;
+                        var pack = new Package()
                         {
                             Time = (t1 + t2 + t3) / 1000.0,
                             Fi = trassa_point.Fi,
@@ -209,85 +262,41 @@ namespace DataCalc
                             F = stream.F,
                             C = c,
                             Tau = stream.Tau
-                        });
-                        
-
-						#region Проверка на уже оформленные пакеты - Проверка 5
-
-                        if (is_ran.charact == previousRan || t == 0)
-                        {
-                            if (count <= is_ran.charact.N)
-                            {
-                                count++;
-                                var pack = new Package()
-                                {
-                                    Time = (t1 + t2 + t3) / 1000.0,
-                                    Fi = trassa_point.Fi,
-                                    Lambda = trassa_point.Lambda,
-                                    Height = trassa_point.Height,
-                                    Psi = trassa_point.Psi < 0 ? 360 + trassa_point.Psi : trassa_point.Psi,
-                                    Tangaz = trassa_point.Tangaz,
-                                    Kren = trassa_point.Kren,
-                                    Board = board,
-                                    F = stream.F,
-                                    C = c,
-                                    Tau =  stream.Tau
-                                };
-                                package.Add(pack);
-
-                                var current_data = $"{(t1 + t2 + t3) / 1000.0:0.000000000}\t{trassa_point.Fi:0.00000}\t{trassa_point.Lambda:0.00000}"
-                                                   + $"\t{trassa_point.Height / 1000:0.000}\t{(trassa_point.Psi < 0 ? 360 + trassa_point.Psi : trassa_point.Psi):0.00000}\t{trassa_point.Tangaz:0.00000}\t{trassa_point.Kren:0.00000}\t"
-                                                   + $"{board}\t{c:0.00000}\t{stream.F:0.0}\t{stream.Tau:0.000}\tABC\n";
-                                results += current_data;
-                                Console.Write(current_data);
-                            }
-                            else
-                            {
-                                previousRan = is_ran.charact;
-                                packages.Add(package);
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            count = 1;
-                            if (package.Any())
-                            {
-                                packages.Add(package);
-                                package.Clear();
-                            }
-                            var current_data = $"{(t1 + t2 + t3) / 1000.0:0.000000000}\t{trassa_point.Fi:0.00000}\t{trassa_point.Lambda:0.00000}"
-                                               + $"\t{trassa_point.Height / 1000:0.000}\t{(trassa_point.Psi < 0 ? 360 + trassa_point.Psi : trassa_point.Psi):0.00000}\t{trassa_point.Tangaz:0.00000}\t{trassa_point.Kren:0.00000}\t"
-                                               + $"{board}\t{c:0.00000}\t{stream.F:0.0}\t{stream.Tau:0.000}\tABC\n";
-                            results += current_data;
-                            Console.Write(current_data);
-                        }
-
-						#endregion
-
-
-                        /*
-                        #region Формирование вывода в файл
+                        };
+                        package.Add(pack);
 
                         var current_data = $"{(t1 + t2 + t3) / 1000.0:0.000000000}\t{trassa_point.Fi:0.00000}\t{trassa_point.Lambda:0.00000}"
                                            + $"\t{trassa_point.Height / 1000:0.000}\t{(trassa_point.Psi < 0 ? 360 + trassa_point.Psi : trassa_point.Psi):0.00000}\t{trassa_point.Tangaz:0.00000}\t{trassa_point.Kren:0.00000}\t"
                                            + $"{board}\t{c:0.00000}\t{stream.F:0.0}\t{stream.Tau:0.000}\tABC\n";
                         results += current_data;
                         Console.Write(current_data);
-
-                        #endregion
-                        */
-
-                        previousRan = is_ran.charact;
                     }
-                    Console.WriteLine("---------------------------");
-                    t2 += stream.Duration;
+                    else
+                    {
+                        previousRan = is_ran.charact;
+                        packages.Add(package);
+                        break;
+                    }
+                }
+                else
+                {
+                    count = 1;
+                    if (package.Any())
+                    {
+                        packages.Add(package);
+                        package.Clear();
+                    }
+                    var current_data = $"{(t1 + t2 + t3) / 1000.0:0.000000000}\t{trassa_point.Fi:0.00000}\t{trassa_point.Lambda:0.00000}"
+                                       + $"\t{trassa_point.Height / 1000:0.000}\t{(trassa_point.Psi < 0 ? 360 + trassa_point.Psi : trassa_point.Psi):0.00000}\t{trassa_point.Tangaz:0.00000}\t{trassa_point.Kren:0.00000}\t"
+                                       + $"{board}\t{c:0.00000}\t{stream.F:0.0}\t{stream.Tau:0.000}\tABC\n";
+                    results += current_data;
+                    Console.Write(current_data);
                 }
 
-                t1 += t2;
-            }
+				#endregion
 
-            return (packages.SelectMany(i => i).ToList(), packages);
+                previousRan = is_ran.charact;
+            }
         }
 
         /// <summary>
@@ -331,7 +340,7 @@ namespace DataCalc
             return buf;
         }
 
-        
+
         /// <summary>
         /// Разчет массивов данных разных ИРИ с заданными отклонениями
         /// </summary>
@@ -349,18 +358,17 @@ namespace DataCalc
         /// Массив3 - все импульсы пакетов с погрешностью,
         /// Массив4 - массив усредненых пакетов с погрешностью
         /// </returns>
-        public static 
-            (List<Package> arr1, 
-            List<Package> arr2, 
-            List<Package> arr3, 
-            List<Package> arr4) 
-            
+        public static
+            (List<Package> arr1,
+            List<Package> arr2,
+            List<Package> arr3,
+            List<Package> arr4)
             RanUnion
-            
-            (List<(List<Package> all_data, List<List<Package>> packages)> ran_data, 
-            double time_sigma, double coord_sigma, double height_sigma, double psi_sigma,
-            double c_sigma, double f_sigma, double tau_sigma)
-        
+            (
+                List<(List<Package> all_data, List<List<Package>> packages)> ran_data,
+                double time_sigma, double coord_sigma, double height_sigma, double psi_sigma,
+                double c_sigma, double f_sigma, double tau_sigma)
+
         {
             var arr1 = new List<Package>(); // Массив всех импульсов пакетов без погрешности
             var arr2 = new List<Package>(); // Массив всех усредненных пакетов без погрешности
@@ -369,12 +377,15 @@ namespace DataCalc
                 arr1.AddRange(data.packages.SelectMany(i => i));
                 arr2.AddRange(data.packages.Select(i => new Package()
                 {
-                    Time = i.First().Time, Fi = i.Average(j => j.Fi),
-                    Lambda = i.Average(j => j.Lambda), Height = i.First().Height,
-                    Psi = i.Average(j => j.Psi), 
+                    Time = i.First().Time,
+                    Fi = i.Average(j => j.Fi),
+                    Lambda = i.Average(j => j.Lambda),
+                    Height = i.First().Height,
+                    Psi = i.Average(j => j.Psi),
                     Tangaz = i.Average(j => j.Tangaz),
                     Kren = i.Average(j => j.Kren),
-                    Board = i.First().Board, C = i.Average(j => j.C),
+                    Board = i.First().Board,
+                    C = i.Average(j => j.C),
                     F = i.Average(j => j.F),
                     Tau = i.Average(j => j.Tau),
                     Type = i.First().Type,
@@ -382,43 +393,61 @@ namespace DataCalc
                 }));
             }
             var arr3 = // Массив всех усредненных импульсов пакетов c погрешностью
-                IriDataSigma(arr1, time_sigma, coord_sigma, 
-                height_sigma, psi_sigma, c_sigma, 
-                f_sigma, tau_sigma); 
+                IriDataSigma(arr1, time_sigma, coord_sigma,
+                    height_sigma, psi_sigma, c_sigma,
+                    f_sigma, tau_sigma);
             var arr4 = // Массив всех усредненных пакетов c погрешностью
-                IriDataSigma(arr2, time_sigma, coord_sigma, 
-                height_sigma, psi_sigma, c_sigma, 
-                f_sigma, tau_sigma);
-            
+                IriDataSigma(arr2, time_sigma, coord_sigma,
+                    height_sigma, psi_sigma, c_sigma,
+                    f_sigma, tau_sigma);
+
             // Сортировка массивов по времени
             arr1 = arr1.OrderBy(i => i.Time).ToList(); // Сортировка по времени
             arr2 = arr2.OrderBy(i => i.Time).ToList(); // Сортировка по времени
             arr3 = arr3.OrderBy(i => i.Time).ToList(); // Сортировка по времени
             arr4 = arr4.OrderBy(i => i.Time).ToList(); // Сортировка по времени
-            
+
 
             return (arr1.ToList(), arr2.ToList(), arr3.ToList(), arr4.ToList());
         }
-        private static IEnumerable<Package> IriDataSigma(List<Package> packages, double time_sigma, double coord_sigma, double height_sigma, double psi_sigma, double c_sigma, double f_sigma, double tau_sigma)
+
+        private static IEnumerable<Package> IriDataSigma(
+            List<Package> packages, double time_sigma, double coord_sigma, double height_sigma, double psi_sigma, double c_sigma, double f_sigma, double tau_sigma)
         {
 
-            return packages                 // Массив всех импульсов пакетов c погрешностью
+
+            return packages // Массив всех импульсов пакетов c погрешностью
                .Select(i => new Package()
                 {
-                    Time = Math.Abs((double)RandomNorm(i.Time, time_sigma)), 
+                    Time = Math.Abs((double) RandomNorm(i.Time, time_sigma)),
                     Fi = CoordRand(i.Fi, i.Lambda, coord_sigma).Fi,
-                    Lambda = CoordRand(i.Fi, i.Lambda, coord_sigma).Lambda, 
-                    Height = (double)RandomNorm(i.Height, height_sigma),
-                    Psi = (double)RandomNorm(i.Psi, psi_sigma), 
+                    Lambda = CoordRand(i.Fi, i.Lambda, coord_sigma).Lambda,
+                    Height = (double) RandomNorm(i.Height, height_sigma),
+                    Psi = (double) RandomNorm(i.Psi, psi_sigma),
                     Tangaz = i.Tangaz,
                     Kren = i.Kren,
-                    Board = i.Board, 
-                    C = (double)RandomNorm(i.C, c_sigma),
-                    F = (double)RandomNorm(i.F, f_sigma),
-                    Tau = (double)RandomNorm(i.Tau, tau_sigma),
+                    Board = i.Board,
+                    C = GetC(i.C, c_sigma),
+                    F = (double) RandomNorm(i.F, f_sigma),
+                    Tau = (double) RandomNorm(i.Tau, tau_sigma),
                     Type = i.Type,
                     Number = i.Number
                 });
+        }
+
+        /// <summary>
+        /// Чтобы угол пелленга был в диапазоне от -1 до 1
+        /// </summary>
+        /// <returns></returns>
+        private static double GetC(double C, double c_sigma)
+        {
+            double c;
+            do
+            {
+                c = (double) RandomNorm(C, c_sigma);
+            } while (c < -1 || c > 1);
+
+            return c;
         }
 
         public static TrassalOutParam Trassal(TrassalInParam param)
@@ -482,8 +511,7 @@ namespace DataCalc
 
             // Вектор скорости ЛА в момент t
             var p_speed =
-                (r2 * (Cos(alpha) / Sin(delta))
-                 - r1 * (Cos(delta - alpha) / Sin(delta)))
+                (r2 * (Cos(alpha) / Sin(delta)) - r1 * (Cos(delta - alpha) / Sin(delta)))
                 * (param.V / (R + param.h));
 
             // Единичный вектор направления строительной оси ЛА в момент t^

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
 namespace DataCalc
@@ -64,7 +65,7 @@ namespace DataCalc
 
         public override string ToString()
         {
-            return $"{Time:0.000000000}\t{Fi:0.00000}\t{Lambda:0.00000}\t{Height:0.000}\t{Psi:0.00000}\t{Tangaz:0.00000}\t{Kren:0.00000}\t{Board}\t{C:0.00000}\t{F:0.0}\t{Tau:0.000}\t{Type}";
+            return $"{Time:0.000000000}\t{Fi:0.00000}\t{Lambda:0.00000}\t{Height:0.000}\t{Psi:0.00000}\t{Tangaz:0.00000}\t{Kren:0.00000}\t{Board}\t{C:0.00000}\t\t{F:0.0}\t\t{Tau:0.000}\t\t{Type}";
         }
     }
 
@@ -181,6 +182,7 @@ public class Catalog
     /// <summary>
     /// Код типа РЭС
     /// </summary>
+    [Key]
     public string Type { get; set; }
     /// <summary>
     /// Условный номер типа
@@ -246,7 +248,7 @@ public class Catalog
 
         public override string ToString()
         {
-            return $"{Time:0.000000000}\t{Fi:0.000000}\t{Lambda:0.000000}\t{Height:0.000}\t{Psi:0.000000}\t{Tangaz}\t{Kren}";
+            return $"{Time:0.000000000}\t{Fi:0.000000}\t{Lambda:0.000000}\t{Height:0.000}\t{Psi:0.000000}\t{Tangaz}\t{Kren}".Replace(".", ",");
         }
     }
 
